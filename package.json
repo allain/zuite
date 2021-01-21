@@ -9,6 +9,7 @@
     "build": "npm run build:esm && npm run build:js",
     "build:js": "esbuild --format=iife --minify --sourcemap --bundle --outfile=dist/zuite.min.js --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
     "build:esm": "esbuild --format=esm --minify --sourcemap --bundle --outfile=dist/zuite.min.mjs --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
+    "deploy": "npm run build && rm ./examples/zuite.min* && cp ./dist/* ./examples/",
     "format": "prettier-standard --format src test",
     "lint": "eslint \"src/**\" \"test/**/*.mjs\"",
     "test": "web-test-runner test/**/*.test.mjs --node-resolve",

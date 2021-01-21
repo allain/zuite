@@ -1,4 +1,6 @@
 .vscode
 dist
+examples/zuite.min.mjs
+examples/zuite.min.mjs.map
 coverage
 node_modules
