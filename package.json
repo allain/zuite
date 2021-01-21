@@ -1,0 +1,30 @@
+{
+  "name": "zuite",
+  "version": "0.1.0",
+  "description": "A toolkit for building Zoomable User Interfaces",
+  "type": "module",
+  "module": "dist/zuite.min.mjs",
+  "main": "dist/zuite.min.js",
+  "scripts": {
+    "build": "npm run build:esm && npm run build:js",
+    "build:js": "esbuild --format=iife --minify --sourcemap --bundle --outfile=dist/zuite.min.js --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
+    "build:esm": "esbuild --format=esm --minify --sourcemap --bundle --outfile=dist/zuite.min.mjs --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
+    "format": "prettier-standard --format src test",
+    "lint": "eslint \"src/**\" \"test/**/*.mjs\"",
+    "test": "web-test-runner test/**/*.test.mjs --node-resolve",
+    "examples": "npx http-server ./examples/",
+    "prepublishOnly": "npm run format && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@esm-bundle/chai": "^4.1.5",
+    "@web/test-runner": "^0.12.2",
+    "@web/test-runner-chrome": "^0.9.0",
+    "esbuild": "^0.8.31",
+    "eslint": "^7.17.0",
+    "eslint-plugin-security": "^1.4.0",
+    "prettier-standard": "^16.4.1"
+  },
+  "dependencies": {
+    "html2canvas": "^1.0.0-rc.7"
+  }
+}
