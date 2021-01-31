@@ -146,8 +146,10 @@ class DiagramNode extends ZNode {
       ctx.strokeStyle = "#000"
 
       ctx.beginPath()
+      ctx.lineJoin = ctx.lineCap = "round"
       ctx.moveTo(stroke[0].x, stroke[0].y)
-      for (const point of stroke) {
+      const simpler = simplifyPolyLine(stroke, 1 / displayScale)
+      for (const point of simpler) {
         ctx.lineTo(point.x, point.y)
       }
       ctx.stroke()
