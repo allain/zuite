@@ -1,4 +1,4 @@
-import { ZText, ZNode, ZBounds } from '../zuite.min.mjs'
+import { ZText, ZNode } from '../zuite.min.mjs'
 
 import { MonthNode } from './MonthNode.mjs'
 
@@ -6,7 +6,7 @@ export class YearNode extends ZNode {
   constructor (year) {
     super({
       focusable: true,
-      bounds: new ZBounds(0, 0, MonthNode.monthWidth + 50, 570 + 70),
+      bounds: [0, 0, MonthNode.monthWidth + 50, 570 + 70],
       fillStyle: '#eeeeee'
     })
 

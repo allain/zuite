@@ -33,7 +33,7 @@ export class MonthNode extends ZNode {
   constructor (year, month) {
     super({
       focusable: true,
-      bounds: new ZBounds(0, 0, monthWidth, 570),
+      bounds: [0, 0, monthWidth, 570],
       fillStyle: '#cccccc'
     })
 
@@ -56,7 +56,7 @@ export class MonthNode extends ZNode {
     for (let currentDay = 0; currentDay < daysInMonth; currentDay++) {
       this.addChild(
         new DayNode(currentDay + 1, generateTasks(), {
-          bounds: new ZBounds(0, 0, columnWidth * 5, 500)
+          bounds: [0, 0, columnWidth * 5, 500]
         })
           .translateBy(columnNumber++ * columnWidth, currentY)
           .scaleBy(0.2)

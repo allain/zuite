@@ -1,5 +1,4 @@
 import {
-  ZBounds,
   ZCanvas,
   ZNavigator,
   ZNode,
@@ -7,8 +6,11 @@ import {
   ZImage,
   ZHtml,
   ZActivity,
-  easings
-} from '../zuite.min.mjs'
+  ZPoint,
+  easings,
+} from "../zuite.min.mjs"
+
+import { simplifyPolyLine } from "./simply-poly-line.mjs"
 
 const loremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam laoreet nisl sit amet dolor condimentum rutrum. Vestibulum et lacus pellentesque mi pretium tempus. Aliquam erat volutpat. Praesent dapibus augue eros, vitae rutrum eros ultrices vel. Integer lobortis, neque eu tincidunt maximus, quam augue sollicitudin risus, sed consequat leo ipsum id enim. Cras orci nibh, ultrices nec lorem nec, interdum suscipit orci. Nulla id felis vel ligula lobortis aliquam vitae finibus odio. Maecenas vitae feugiat erat, eget porttitor arcu. Proin accumsan mauris sit amet lacus efficitur rutrum. Ut at odio in lorem laoreet tincidunt. Integer in neque suscipit, finibus est eu, molestie justo. Curabitur dui arcu, iaculis sit amet sollicitudin quis, tristique quis lectus. Phasellus in suscipit risus. Phasellus in justo vitae quam ullamcorper gravida vel sed elit. Suspendisse eleifend commodo velit nec vestibulum. Aliquam ut mi purus.
 
@@ -39,41 +41,65 @@ const sampleHtml = `
   </div>
 `
 
+class RowNode extends ZNode {
+  constructor(padding = 0) {
+    super()
+    this.padding = padding
+  }
+  layoutChildren() {
+    let x = 0
+
+    for (const child of this.children) {
+      child.offset = { x, y: 0 }
+      x += child.fullBounds.width * child.scale + this.padding
+    }
+  }
+}
+
 class ExampleNode extends ZNode {
-  constructor (name, example) {
+  constructor(name, example, description = null) {
     super({
       focusable: true,
-      bounds: new ZBounds(0, 0, 600, 400),
-      fillStyle: '#ffffff'
+      bounds: [0, 0, 600, 400],
+      fillStyle: "#ffffff",
     })
 
     this.addChild(new ZText(name).scaleBy(4))
     this.addChild(example)
+    if (description) {
+      this.addChild(new ZText(description))
+    }
   }
 
-  layoutChildren () {
-    const headerBottom = this.children[0].fullBounds.height
-    this.children[1].offset = { x: 0, y: headerBottom * 4 + 20 }
+  layoutChildren() {
+    const [headerNode, bodyNode, descriptionNode] = this.children
+    let bodyStart = headerNode.fullBounds.height * 4 + 10
+    if (descriptionNode) {
+      descriptionNode.offset = { x: 0, y: bodyStart }
+      bodyStart += descriptionNode.fullBounds.height + 10
+    }
+
+    bodyNode.offset = { x: 0, y: bodyStart }
   }
 }
 
 class AnimationNode extends ZNode {
-  constructor (n) {
+  constructor(n) {
     super({
-      focusable: true
+      focusable: true,
     })
 
     for (let x = 0; x < n; x++) {
       this.addChild(
         new ZNode({
           fillStyle: this.randomColor(),
-          bounds: new ZBounds(0, 0, 20, 20)
+          bounds: [0, 0, 20, 20],
         })
       )
     }
   }
 
-  animate (millis) {
+  animate(millis) {
     let index = 0
     const cols = Math.floor(Math.sqrt(this.children.length))
     for (const c of this.children) {
@@ -83,116 +109,167 @@ class AnimationNode extends ZNode {
       )
       c.offset = {
         x: (index % cols) * 20 + 40 * ratio,
-        y: Math.floor(index / cols) * 20 + 40 * ratio
+        y: Math.floor(index / cols) * 20 + 40 * ratio,
       }
     }
     this.invalidatePaint()
   }
 
-  randomColor () {
+  randomColor() {
     return (
-      'rgb(' +
+      "rgb(" +
       [0, 150 + Math.random() * 50, 169 + Math.random() * 50]
         .map(Math.round)
-        .join(',') +
-      ')'
+        .join(",") +
+      ")"
     )
   }
 }
 
-function main () {
-  const canvasEl = document.querySelector('canvas')
+class DiagramNode extends ZNode {
+  constructor(camera, options = {}) {
+    super({
+      bounds: [0, 0, 800, 600],
+      ...options,
+    })
+
+    this.camera = camera
+    this.addListener(this)
+
+    this.strokes = []
+    this.currentStroke = null
+  }
+
+  paint(ctx, displayScale) {
+    ctx.lineWidth = displayScale > 4 ? 4 : Math.min(10, 1 / displayScale)
+    for (const stroke of this.strokes) {
+      ctx.strokeStyle = "#000"
+
+      ctx.beginPath()
+      ctx.moveTo(stroke[0].x, stroke[0].y)
+      for (const point of stroke) {
+        ctx.lineTo(point.x, point.y)
+      }
+      ctx.stroke()
+    }
+  }
+
+  pointerdown({ event }) {
+    if (!event.ctrlKey) return
+
+    this.currentStroke = []
+    this.strokes.push(this.currentStroke)
+
+    const point = this.globalToLocal(new ZPoint(event.point.x, event.point.y))
+    this.currentStroke.push(point)
+  }
+
+  pointerup() {
+    if (this.currentStroke) {
+      this.strokes[this.strokes.length - 1] = simplifyPolyLine(
+        this.currentStroke,
+        1
+      )
+      this.currentStroke = null
+    }
+  }
+
+  pointermove({ event }) {
+    if (this.currentStroke) {
+      const point = this.globalToLocal(new ZPoint(event.point.x, event.point.y))
+      this.currentStroke.push(point)
+    }
+  }
+
+  paintAfterChildren(ctx) {
+    ctx.lineWidth = 1
+    ctx.strokeRect(0, 0, this.bounds.width, this.bounds.height)
+  }
+}
+
+function main() {
+  const canvasEl = document.querySelector("canvas")
   canvasEl.width = window.innerWidth
   canvasEl.height = window.innerHeight
   const canvas = new ZCanvas(canvasEl)
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     canvasEl.width = window.innerWidth
     canvasEl.height = window.innerHeight
-    // pCanvas.setBounds(new ZBounds(0, 0, window.innerWidth, window.innerHeight))
+    // canvas.camera.setBounds(new ZBounds(0, 0, window.innerWidth, window.innerHeight))
   })
 
   const layer = canvas.camera.layers[0]
 
   layer.addListener(new ZNavigator(canvas.camera))
-  canvas.fillStyle = '#666666'
+  canvas.fillStyle = "#666666"
 
-  const examples = new ZNode()
+  const examples = new RowNode(20)
 
   const animationNodeCount = 1000
   const animatedNode = new AnimationNode(animationNodeCount).scaleBy(0.25, 0.25)
 
   layer.root.scheduler.schedule(
     new ZActivity({
-      step (millis) {
+      step(millis) {
         animatedNode.animate(millis)
-      }
+      },
     })
   )
-  const foundMe = new ZText('You found me', { focusable: true })
-    .scaleBy(0.2, 0.2)
-    .translateBy(500, 280)
+  const foundMe = new ZText("You found me", { focusable: true }).scaleBy(
+    0.2,
+    0.2
+  )
 
   examples.addChild(
     new ExampleNode(
-      'Text',
-      new ZNode().addChild(
+      "Text",
+      new RowNode(10).addChild(
         new ZText(loremIpsum, { focusable: true }).scaleBy(0.25, 0.25),
-        new ZText(loremIpsum, { focusable: true })
-          .translateBy(200, 0)
-          .scaleBy(0.1, 0.15),
-        new ZText(loremIpsum, { focusable: true })
-          .scaleBy(0.01, 0.1)
-          .translateBy(300, 0),
-        new ZNode({
-          focusable: true,
-          fillStyle: '#0096a9',
-          bounds: new ZBounds(0, 0, 100, 100)
-        })
-          .translateBy(500 + foundMe.fullBounds.width * foundMe.scale, 280)
-          .scaleBy(0.1, 0.1),
+        new ZText(loremIpsum, { focusable: true }).scaleBy(0.1, 0.15),
+        new ZText(loremIpsum, { focusable: true }).scaleBy(0.01, 0.1),
         foundMe
       )
     ).scaleBy(0.25),
     new ExampleNode(
-      'Images',
-      new ZNode()
+      "Images",
+      new RowNode(10)
         .addChild(
-          new ZImage('/demo/images/elastalink.png', {
-            focusable: true
+          new ZImage("/demo/images/elastalink.png", {
+            focusable: true,
           }).scaleBy(0.25, 0.25),
-          new ZImage('https://elastalink.com/_nuxt/img/logo-icon.9a036c7.svg', {
-            focusable: true
-          }).translateBy(0, 100)
+          new ZImage("https://elastalink.com/_nuxt/img/logo-icon.9a036c7.svg", {
+            focusable: true,
+          })
         )
-        .translateBy(20, 0)
         .scaleBy(0.5, 0.5)
-    )
-      .scaleBy(0.25, 0.25)
-      .translateBy(200, 0),
+    ).scaleBy(0.25, 0.25),
     new ExampleNode(
-      'Animation',
-      new ZNode().addChild(
-        new ZText(`${animationNodeCount} nodes all being animated`).scaleBy(
-          0.5,
-          0.5
-        ),
-        animatedNode.translateBy(0, 20)
-      )
-    )
-      .scaleBy(0.25, 0.25)
-      .translateBy(400, 0),
+      "Animation",
+      new ZNode().addChild(animatedNode.translateBy(0, 20)),
+      `${animationNodeCount} nodes all being animated`
+    ).scaleBy(0.25, 0.25),
     new ExampleNode(
-      'HTML',
-      new ZNode().addChild(
-        new ZText(sampleHtml, { focusable: true }).scaleBy(0.4, 0.4),
-        new ZHtml(sampleHtml, { focusable: true })
-          .translateBy(260, 0)
-          .scaleBy(0.4, 0.4)
-      )
-    )
-      .scaleBy(0.25, 0.25)
-      .translateBy(600, 0)
+      "HTML",
+      new RowNode(1)
+        .addChild(
+          new ZText(sampleHtml, { focusable: true }).scaleBy(0.4, 0.4),
+          new ZHtml(sampleHtml, { focusable: true }).scaleBy(0.4, 0.4)
+        )
+        .scaleBy(0.8, 0.8)
+    ).scaleBy(0.25, 0.25),
+    new ExampleNode(
+      "Diagrams",
+      new RowNode(10)
+        .addChild(
+          new DiagramNode(canvas.camera, { focusable: true }),
+          new DiagramNode(canvas.camera, { focusable: true }),
+          new DiagramNode(canvas.camera, { focusable: true }),
+          new DiagramNode(canvas.camera, { focusable: true })
+        )
+        .scaleBy(0.1, 0.1),
+      "Hold CTRL to Draw"
+    ).scaleBy(0.25, 0.25)
   )
 
   layer.addChild(examples)

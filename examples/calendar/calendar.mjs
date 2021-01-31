@@ -15,7 +15,7 @@ function main () {
   window.addEventListener('resize', () => {
     canvasEl.width = window.innerWidth
     canvasEl.height = window.innerHeight
-    canvas.bounds = new ZBounds(0, 0, window.innerWidth, window.innerHeight)
+    canvas.bounds = [0, 0, window.innerWidth, window.innerHeight]
   })
 
   layer.addListener(new ZNavigator(canvas.camera))

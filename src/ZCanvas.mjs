@@ -1,3 +1,4 @@
+import { ZPoint } from './utils/ZPoint.mjs'
 import { ZBounds } from './utils/ZBounds.mjs'
 import { ZCamera } from './ZCamera.mjs'
 import { ZLayer } from './ZLayer.mjs'
@@ -11,7 +12,7 @@ export class ZCanvas {
     this.canvas = canvas
     canvas.font = ZText.fontSize + 'px ' + ZText.font
     this.root = root
-    this.camera = new ZCamera()
+    const camera = this.camera = new ZCamera()
     this.camera.bounds = new ZBounds(0, 0, canvas.width, canvas.height)
 
     const layer = new ZLayer()
@@ -56,6 +57,8 @@ export class ZCanvas {
       const y = event.pageY - canvas.offsetTop
       const newPickedNodes = _pCanvas.getPickedNodes(x, y)
 
+      event.point = camera.viewTransform.inverse.transform(new ZPoint(x,y))
+
       processMouseOvers(previousPickedNodes, newPickedNodes, event)
 
       dispatchEvent(name, event, newPickedNodes)
@@ -68,13 +71,23 @@ export class ZCanvas {
     })
 
     for (const eventName of [
-      'click',
-      'mousemove',
-      'mousedown',
-      'mouseup',
-      'wheel'
+      "click",
+      "mousemove",
+      "mousedown",
+      "mouseup",
+      "wheel",
+      "pointerover",
+      "pointerenter",
+      "pointerdown",
+      "pointermove",
+      "pointerup",
+      "pointercancel",
+      "pointerout",
+      "pointerleave",
+      "gotpointercapture",
+      "lostpointercapture",
     ]) {
-      canvas.addEventListener(eventName, event =>
+      canvas.addEventListener(eventName, (event) =>
         processMouseEvent(eventName, event)
       )
     }

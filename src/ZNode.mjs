@@ -18,8 +18,20 @@ export class ZNode {
     this.focusable = options?.focusable || false
     this.minScale = options?.minScale || 0
     this.fillStyle = options?.fillStyle || null
-    this.bounds = options?.bounds || new ZBounds()
+    this.bounds = this._prepBounds(options?.bounds)
     this.bufferSize = options?.bufferSize || false
+  }
+
+  _prepBounds(bounds) {
+    if (Array.isArray(bounds)) {
+      return new ZBounds(...bounds)
+    } 
+    
+    if (bounds) {
+      return new ZBounds(bounds)
+    } 
+
+      return new ZBounds()
   }
 
   invalidatePaint () {
@@ -228,6 +240,10 @@ export class ZNode {
 
   parentToLocal (target) {
     return this.transform.inverse.transform(target)
+  }
+
+  globalToLocal(target) {
+    return this.globalTransform.inverse.transform(target)
   }
 
   addListener (listener) {

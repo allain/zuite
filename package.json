@@ -13,6 +13,7 @@
     "format": "prettier-standard --format src test",
     "lint": "eslint \"src/**\" \"test/**/*.mjs\"",
     "test": "web-test-runner test/**/*.test.mjs --node-resolve",
+    "preexamples": "npm run build && cp ./dist/zuite.* ./examples",
     "examples": "npx http-server ./examples/",
     "prepublishOnly": "npm run format && npm test && npm run build"
   },

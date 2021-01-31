@@ -75,6 +75,18 @@ it('fills rect when bounds and fillStyle are good', () => {
   expect(fillRectArgs, 'rectangle filled').to.deep.equal([0, 0, 20, 20])
 })
 
+it('supports specifying bounds using an array', () => {
+  const n = new ZNode({
+    bounds: [1, 2, 3, 4]
+  })
+
+  expect(n.bounds.x).to.equal(1)
+  expect(n.bounds.y).to.equal(2)
+  expect(n.bounds.width).to.equal(3)
+  expect(n.bounds.height).to.equal(4)
+
+})
+
 it('fillPaint ignores invisible nodes', () => {
   const n = new ZNode()
   n.visible = false
