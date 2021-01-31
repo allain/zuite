@@ -140,13 +140,17 @@ class DiagramNode extends ZNode {
     this.currentStroke = null
   }
 
+  // TODO: Try tricks from: http://perfectionkills.com/exploring-canvas-drawing-techniques/
   paint(ctx, displayScale) {
-    ctx.lineWidth = displayScale > 4 ? 4 : Math.min(10, 1 / displayScale)
-    for (const stroke of this.strokes) {
-      ctx.strokeStyle = "#000"
+    let lineWidth = displayScale > 4 ? 4 : Math.min(10, 1 / displayScale)
+    ctx.lineWidth = lineWidth
+    // ctx.shadowBlur = lineWidth
+    // ctx.shadowColor = "rgb(0, 0, 0)"
+    ctx.strokeStyle = "#000"
+    ctx.lineJoin = ctx.lineCap = "round"
 
+    for (const stroke of this.strokes) {
       ctx.beginPath()
-      ctx.lineJoin = ctx.lineCap = "round"
       ctx.moveTo(stroke[0].x, stroke[0].y)
       const simpler = simplifyPolyLine(stroke, 1 / displayScale)
       for (const point of simpler) {
