@@ -1,7 +1,9 @@
-import { ZLayer } from '../ZLayer.mjs'
-import * as easings from '../easings.mjs'
+import { ZLayer } from "../ZLayer.mjs"
+import { ZPoint } from "../utils/ZPoint.mjs"
+import { ZTransform } from "../utils/ZTransform.mjs"
+import * as easings from "../easings.mjs"
 
-function debounce (func, wait, immediate) {
+function debounce(func, wait, immediate) {
   var timeout
   return function () {
     var context = this,
@@ -18,19 +20,21 @@ function debounce (func, wait, immediate) {
 }
 
 export class ZNavigator {
-  constructor (camera) {
+  constructor(camera) {
     //    setTimeout(() => zoomTo(layer), 0)
     this.zoomTo = debounce(this.zoomToRaw, 200, true)
     this.camera = camera
     this.layer = camera.layers[0]
     this.lastFocus = null
+    this.downPoint = null
+    this.dragDistance = 0
   }
 
-  findUp (node, test) {
+  findUp(node, test) {
     return node === null || test(node) ? node : this.findUp(node.parent, test)
   }
 
-  zoomToRaw (newFocus) {
+  zoomToRaw(newFocus) {
     if (!newFocus) {
       newFocus = this.layer
     }
@@ -49,18 +53,18 @@ export class ZNavigator {
     this.camera.animateViewToTransform(inverse, 500, easings.inOutExpo)
   }
 
-  zoomOut () {
+  zoomOut() {
     const newFocus = this.findUp(this.lastFocus.parent, () => true)
 
     this.zoomTo(newFocus || this.layer)
   }
 
-  findFocusPath (target) {
+  findFocusPath(target) {
     let newTarget = target
 
     const zoomPath = []
     do {
-      newTarget = this.findUp(newTarget, n => n.focusable)
+      newTarget = this.findUp(newTarget, (n) => n.focusable)
       if (newTarget) {
         zoomPath.unshift(newTarget)
         newTarget = newTarget.parent
@@ -70,7 +74,36 @@ export class ZNavigator {
     return zoomPath
   }
 
-  click ({ pickedNodes }) {
+  mousemove({ event }) {
+    if (!this.downPoint) return
+    const drag = new ZPoint(
+      event.clientX - this.downPoint.x,
+      event.clientY - this.downPoint.y
+    )
+    const dragDistance = Math.sqrt(drag.x * drag.x + drag.y * drag.y)
+    this.dragDistance = Math.max(dragDistance, this.dragDistance)
+
+    // panning
+    if (event.buttons === 1 && !event.ctrlKey) {
+      this.camera.viewTransform = new ZTransform([
+        ...this.downViewTransform.values,
+      ]).translateBy(drag.x, drag.y)
+    }
+  }
+
+  mouseup({ event, pickedNodes }) {
+    this.downPoint = null
+    const dragDistance = this.dragDistance
+    this.dragDistance = 0
+    if (dragDistance > 20) {
+      return
+    }
+
+    if (event.button === 2) {
+      this.zoomOut()
+      return true
+    }
+
     const zoomPath = this.findFocusPath(pickedNodes[0])
     if (zoomPath.length === 0) {
       this.zoomTo(this.layer)
@@ -97,17 +130,28 @@ export class ZNavigator {
     this.zoomTo(
       newFocus === this.lastFocus ? zoomPath[1] || newFocus : newFocus
     )
-    return true
+    return event.button === 1
   }
 
-  mouseup (event) {
-    if (event.event.button === 2) {
-      this.zoomOut()
-      return true
-    }
+  mousedown({ event }) {
+    this.downViewTransform = this.camera.viewTransform
+    this.downPoint = { x: event.clientX, y: event.clientY }
+    this.dragDistance = 0
   }
 
-  wheel ({ event, pickedNodes }) {
+  _screenDragDistance(event) {
+    return Math.sqrt(
+      Math.pow(event.clientX - this.downPoint.x, 2) +
+        Math.pow(event.clientY - this.downPoint.y, 2)
+    )
+    // const globalDragDistance = Math.sqrt(
+    //   Math.pow(event.point.x - this.downPoint.x, 2) +
+    //     Math.pow(event.point.y - this.downPoint.y, 2)
+    // )
+    // return this.camera.viewTransform.scale * globalDragDistance
+  }
+
+  wheel({ event, pickedNodes }) {
     if (event.deltaY < 0) {
       const zoomPath = this.findFocusPath(pickedNodes[0])
       if (zoomPath.length === 0) {

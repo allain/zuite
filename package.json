@@ -14,7 +14,7 @@
     "lint": "eslint \"src/**\" \"test/**/*.mjs\"",
     "test": "web-test-runner test/**/*.test.mjs --node-resolve",
     "preexamples": "npm run build && cp ./dist/zuite.* ./examples",
-    "examples": "npx http-server ./examples/",
+    "examples": "http-server ./examples/",
     "prepublishOnly": "npm run format && npm test && npm run build"
   },
   "devDependencies": {
@@ -24,6 +24,7 @@
     "esbuild": "^0.8.31",
     "eslint": "^7.17.0",
     "eslint-plugin-security": "^1.4.0",
+    "http-server": "^0.12.3",
     "prettier-standard": "^16.4.1"
   },
   "dependencies": {

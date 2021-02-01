@@ -130,6 +130,7 @@ class DiagramNode extends ZNode {
   constructor(camera, options = {}) {
     super({
       bounds: [0, 0, 800, 600],
+      fillStyle: "#e9e9e9",
       ...options,
     })
 
@@ -142,22 +143,50 @@ class DiagramNode extends ZNode {
 
   // TODO: Try tricks from: http://perfectionkills.com/exploring-canvas-drawing-techniques/
   paint(ctx, displayScale) {
-    let lineWidth = displayScale > 4 ? 4 : Math.min(10, 1 / displayScale)
+    super.paint(ctx, displayScale)
+    let lineWidth = displayScale > 4 ? 4 : Math.min(10, 4 / displayScale)
     ctx.lineWidth = lineWidth
     // ctx.shadowBlur = lineWidth
     // ctx.shadowColor = "rgb(0, 0, 0)"
     ctx.strokeStyle = "#000"
     ctx.lineJoin = ctx.lineCap = "round"
-
     for (const stroke of this.strokes) {
-      ctx.beginPath()
-      ctx.moveTo(stroke[0].x, stroke[0].y)
       const simpler = simplifyPolyLine(stroke, 1 / displayScale)
-      for (const point of simpler) {
-        ctx.lineTo(point.x, point.y)
+      if (stroke === this.currentStroke) {
+        this.paintSimpleStroke(ctx, simpler)
+      } else {
+        this.paintBezierStroke(ctx, simpler)
       }
-      ctx.stroke()
     }
+  }
+
+  paintSimpleStroke(ctx, points) {
+    ctx.beginPath()
+    ctx.moveTo(points[0].x, points[0].y)
+    for (const point of points) {
+      ctx.lineTo(point.x, point.y)
+    }
+    ctx.stroke()
+  }
+
+  paintBezierStroke(ctx, points) {
+    let p1 = points[0]
+    let p2 = points[1]
+
+    ctx.beginPath()
+    ctx.moveTo(p1.x, p1.y)
+
+    for (let i = 1, len = points.length; i < len; i++) {
+      const midPoint = {
+        x: p1.x + (p2.x - p1.x) / 2,
+        y: p1.y + (p2.y - p1.y) / 2,
+      }
+      ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y)
+      p1 = points[i]
+      p2 = points[i + 1]
+    }
+    ctx.lineTo(p1.x, p1.y)
+    ctx.stroke()
   }
 
   pointerdown({ event }) {
@@ -222,10 +251,6 @@ function main() {
       },
     })
   )
-  const foundMe = new ZText("You found me", { focusable: true }).scaleBy(
-    0.2,
-    0.2
-  )
 
   examples.addChild(
     new ExampleNode(
@@ -234,7 +259,7 @@ function main() {
         new ZText(loremIpsum, { focusable: true }).scaleBy(0.25, 0.25),
         new ZText(loremIpsum, { focusable: true }).scaleBy(0.1, 0.15),
         new ZText(loremIpsum, { focusable: true }).scaleBy(0.01, 0.1),
-        foundMe
+        new ZText("You found me", { focusable: true }).scaleBy(0.005, 0.05)
       )
     ).scaleBy(0.25),
     new ExampleNode(

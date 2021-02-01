@@ -1,10 +1,10 @@
-import { ZBounds } from './utils/ZBounds.mjs'
-import { ZTransform } from './utils/ZTransform.mjs'
-import { ZPoint } from './utils/ZPoint.mjs'
-import { ZTransformActivity } from './activities/ZTransformActivity.mjs'
+import { ZBounds } from "./utils/ZBounds.mjs"
+import { ZTransform } from "./utils/ZTransform.mjs"
+import { ZPoint } from "./utils/ZPoint.mjs"
+import { ZTransformActivity } from "./activities/ZTransformActivity.mjs"
 
 export class ZNode {
-  constructor (options) {
+  constructor(options) {
     this.parent = null
     this.children = []
     this._listeners = new Set()
@@ -25,23 +25,23 @@ export class ZNode {
   _prepBounds(bounds) {
     if (Array.isArray(bounds)) {
       return new ZBounds(...bounds)
-    } 
-    
+    }
+
     if (bounds) {
       return new ZBounds(bounds)
-    } 
+    }
 
-      return new ZBounds()
+    return new ZBounds()
   }
 
-  invalidatePaint () {
+  invalidatePaint() {
     const root = this.root
     if (root) {
       root.invalidPaint = true
     }
   }
 
-  paint (ctx) {
+  paint(ctx) {
     if (!this.fillStyle || this.bounds.empty) return
     ctx.fillStyle = this.fillStyle
     ctx.fillRect(
@@ -52,9 +52,9 @@ export class ZNode {
     )
   }
 
-  paintAfterChildren (/*ctx*/) {}
+  paintAfterChildren(/*ctx*/) {}
 
-  fullPaint (ctx, paintScale) {
+  fullPaint(ctx, paintScale) {
     if (!this.visible) return
 
     const inViewport =
@@ -77,7 +77,7 @@ export class ZNode {
     ctx.restore()
   }
 
-  scaleBy (ratio) {
+  scaleBy(ratio) {
     this.transform.scaleBy(ratio)
     this._fullBounds = null
     this._globalFullBounds = null
@@ -86,7 +86,7 @@ export class ZNode {
     return this
   }
 
-  translateBy (dx, dy) {
+  translateBy(dx, dy) {
     this.transform.translateBy(dx, dy)
     this._fullBounds = null
     this._globalFullBounds = null
@@ -95,7 +95,7 @@ export class ZNode {
     return this
   }
 
-  rotateBy (theta) {
+  rotateBy(theta) {
     this.transform.rotateBy(theta)
     this.invalidatePaint()
     if (this.parent) {
@@ -106,7 +106,7 @@ export class ZNode {
     return this
   }
 
-  addChild (...children) {
+  addChild(...children) {
     for (const child of children) {
       child.parent = this
     }
@@ -118,10 +118,10 @@ export class ZNode {
     return this
   }
 
-  removeChild (child) {
+  removeChild(child) {
     child.parent = null
 
-    this.children = this.children.filter(c => c !== child)
+    this.children = this.children.filter((c) => c !== child)
 
     this.invalidateBounds()
     this.invalidatePaint()
@@ -129,7 +129,7 @@ export class ZNode {
     return this
   }
 
-  setTransform (transform) {
+  setTransform(transform) {
     this.transform = transform
 
     if (this.parent) {
@@ -142,7 +142,7 @@ export class ZNode {
     return this
   }
 
-  animateToTransform (transform, duration, easing) {
+  animateToTransform(transform, duration, easing) {
     if (duration) {
       this.root.scheduler.schedule(
         new ZTransformActivity(this, transform, duration, easing)
@@ -152,21 +152,21 @@ export class ZNode {
     }
   }
 
-  get offset () {
+  get offset() {
     return new ZPoint(this.transform.values[4], this.transform.values[5])
   }
 
-  set offset (val) {
+  set offset(val) {
     this.transform.values[4] = val.x
     this.transform.values[5] = val.y
     this.invalidateBounds()
   }
 
-  get root () {
+  get root() {
     return this.parent ? this.parent.root : null
   }
 
-  get fullBounds () {
+  get fullBounds() {
     if (this._fullBounds) return this._fullBounds
 
     if (this.layoutChildren) this.layoutChildren()
@@ -180,7 +180,7 @@ export class ZNode {
     return this._fullBounds
   }
 
-  get globalFullBounds () {
+  get globalFullBounds() {
     if (this._globalFullBounds) return this._globalFullBounds
 
     const fb = this.fullBounds
@@ -204,7 +204,7 @@ export class ZNode {
     return this._globalFullBounds
   }
 
-  get globalTransform () {
+  get globalTransform() {
     let t = new ZTransform()
     let currentNode = this
 
@@ -216,7 +216,7 @@ export class ZNode {
     return t
   }
 
-  dispatchEvent (type, event) {
+  dispatchEvent(type, event) {
     for (const listener of this._listeners) {
       if (!listener[type]) continue
 
@@ -227,18 +227,18 @@ export class ZNode {
     }
   }
 
-  invalidateBounds () {
+  invalidateBounds() {
     this._fullBounds = null
     this._globalFullBounds = null
 
     this.parent && this.parent.invalidateBounds()
   }
 
-  localToParent (target) {
+  localToParent(target) {
     return this.transform.transform(target)
   }
 
-  parentToLocal (target) {
+  parentToLocal(target) {
     return this.transform.inverse.transform(target)
   }
 
@@ -246,37 +246,37 @@ export class ZNode {
     return this.globalTransform.inverse.transform(target)
   }
 
-  addListener (listener) {
+  addListener(listener) {
     this._listeners.add(listener)
   }
 
-  get scale () {
+  get scale() {
     return this.transform.scale
   }
 
-  set scale (newScale) {
+  set scale(newScale) {
     this.transform.values[0] = newScale
     this.transform.values[3] = newScale
     this.invalidateBounds()
     this.invalidatePaint()
   }
 
-  moveToFront () {
+  moveToFront() {
     if (this.parent && this.parent.children.length > 1) {
       this.parent.children = [
         this,
-        ...this.parent.children.filter(c => c !== this)
+        ...this.parent.children.filter((c) => c !== this),
       ]
       this.invalidatePaint()
     }
     return this
   }
 
-  moveToBack () {
+  moveToBack() {
     if (this.parent && this.parent.children.length > 1) {
       this.parent.children = [
-        ...this.parent.children.filter(c => c !== this),
-        this
+        ...this.parent.children.filter((c) => c !== this),
+        this,
       ]
 
       this.invalidatePaint()
