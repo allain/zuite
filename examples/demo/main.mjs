@@ -6,6 +6,7 @@ import {
   ZImage,
   ZHtml,
   ZActivity,
+  ZBounds,
   ZPoint,
   easings,
 } from "../zuite.min.mjs"
@@ -127,22 +128,91 @@ class AnimationNode extends ZNode {
 }
 
 class DiagramNode extends ZNode {
-  constructor(camera, options = {}) {
+  constructor({ camera, navigator, depth = 1 }, options = {}) {
     super({
-      bounds: [0, 0, 800, 600],
+      bounds: [
+        0,
+        0,
+        Math.min(window.innerHeight * (16 / 10), window.innerWidth * 0.8),
+        window.innerHeight * 0.8,
+      ],
       fillStyle: "#e9e9e9",
       ...options,
     })
 
+    this.navigator = navigator
     this.camera = camera
     this.addListener(this)
+    this.painting = false
 
     this.strokes = []
     this.currentStroke = null
+
+    const editToggle = new ZNode()
+
+    const editPencil = new ZImage(
+      "https://icons.clickncode.com/icons/zondicons/edit-pencil.svg",
+      {
+        bounds: [0, 0, 24, 24],
+      }
+    )
+
+    const savePic = new ZImage(
+      "https://icons.clickncode.com/icons/zondicons/save-disk.svg",
+      {
+        bounds: [0, 0, 24, 24],
+        visible: false,
+      }
+    )
+
+    editToggle.addListener({
+      click: () => {
+        this.painting = !this.painting
+        editPencil.visible = !this.painting
+        savePic.visible = this.painting
+        childrenPanel.visible = !this.painting
+        navigator.locked = this.painting
+        return true
+      },
+    })
+
+    // editPencil.invalidateBounds()
+    editToggle.addChild(editPencil)
+    editToggle.addChild(savePic)
+    this.addChild(editToggle)
+
+    const childrenPanel = new RowNode(5)
+    const childMaker = new ZImage(
+      "https://icons.clickncode.com/icons/zondicons/add-outline.svg",
+      {
+        bounds: [0, 0, 24, 24],
+      }
+    )
+
+    if (depth < 5) {
+      const childScale = 48 / this.bounds.height
+
+      childMaker.addListener({
+        click: () => {
+          if (!childMaker.visible || navigator.locked) return
+          const newDiagram = new DiagramNode(
+            { camera, navigator, depth: depth + 1 },
+            options
+          )
+          childrenPanel.addChild(newDiagram.scaleBy(childScale))
+          childMaker.visible = childrenPanel.children.length < 12
+          setTimeout(() => navigator.zoomTo(newDiagram), 10)
+        },
+      })
+
+      childrenPanel.addChild(childMaker)
+      this.addChild(childrenPanel.translateBy(0, this.bounds.height + 5))
+    }
   }
 
   // TODO: Try tricks from: http://perfectionkills.com/exploring-canvas-drawing-techniques/
   paint(ctx, displayScale) {
+    this.fillStyle = this.painting ? "#f9f9ff" : "#ffffff"
     super.paint(ctx, displayScale)
     let lineWidth = displayScale > 4 ? 4 : Math.min(10, 4 / displayScale)
     ctx.lineWidth = lineWidth
@@ -190,7 +260,7 @@ class DiagramNode extends ZNode {
   }
 
   pointerdown({ event }) {
-    if (!event.ctrlKey) return
+    if (!this.painting) return
 
     this.currentStroke = []
     this.strokes.push(this.currentStroke)
@@ -235,8 +305,8 @@ function main() {
   })
 
   const layer = canvas.camera.layers[0]
-
-  layer.addListener(new ZNavigator(canvas.camera))
+  const navigator = new ZNavigator(canvas.camera)
+  layer.addListener(navigator)
   canvas.fillStyle = "#666666"
 
   const examples = new RowNode(20)
@@ -289,21 +359,15 @@ function main() {
         )
         .scaleBy(0.8, 0.8)
     ).scaleBy(0.25, 0.25),
-    new ExampleNode(
-      "Diagrams",
-      new RowNode(10)
-        .addChild(
-          new DiagramNode(canvas.camera, { focusable: true }),
-          new DiagramNode(canvas.camera, { focusable: true }),
-          new DiagramNode(canvas.camera, { focusable: true }),
-          new DiagramNode(canvas.camera, { focusable: true })
-        )
-        .scaleBy(0.1, 0.1),
-      "Hold CTRL to Draw"
-    ).scaleBy(0.25, 0.25)
+    new DiagramNode(
+      { camera: canvas.camera, navigator },
+      { focusable: true }
+    ).scaleBy(0.6, 0.6)
   )
 
   layer.addChild(examples)
+
+  navigator.zoomToRaw(examples, 0)
 }
 
 main()

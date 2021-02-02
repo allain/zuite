@@ -28,13 +28,14 @@ export class ZNavigator {
     this.lastFocus = null
     this.downPoint = null
     this.dragDistance = 0
+    this.locked = false
   }
 
   findUp(node, test) {
     return node === null || test(node) ? node : this.findUp(node.parent, test)
   }
 
-  zoomToRaw(newFocus) {
+  zoomToRaw(newFocus, duration = 500) {
     if (!newFocus) {
       newFocus = this.layer
     }
@@ -50,7 +51,7 @@ export class ZNavigator {
       (this.camera.bounds.height - focusBounds.height) / 2
     )
 
-    this.camera.animateViewToTransform(inverse, 500, easings.inOutExpo)
+    this.camera.animateViewToTransform(inverse, duration, easings.inOutExpo)
   }
 
   zoomOut() {
@@ -74,24 +75,27 @@ export class ZNavigator {
     return zoomPath
   }
 
-  mousemove({ event }) {
+  pointermove({ event }) {
     if (!this.downPoint) return
     const drag = new ZPoint(
       event.clientX - this.downPoint.x,
       event.clientY - this.downPoint.y
     )
     const dragDistance = Math.sqrt(drag.x * drag.x + drag.y * drag.y)
+    // TODO: make drag distance use the sum of all drag line segments
     this.dragDistance = Math.max(dragDistance, this.dragDistance)
 
     // panning
-    if (event.buttons === 1 && !event.ctrlKey) {
+    if (event.buttons === 1 && dragDistance > 5) {
       this.camera.viewTransform = new ZTransform([
         ...this.downViewTransform.values,
       ]).translateBy(drag.x, drag.y)
     }
   }
 
-  mouseup({ event, pickedNodes }) {
+  pointerup({ event, pickedNodes }) {
+    if (this.locked) return
+
     this.downPoint = null
     const dragDistance = this.dragDistance
     this.dragDistance = 0
@@ -133,7 +137,9 @@ export class ZNavigator {
     return event.button === 1
   }
 
-  mousedown({ event }) {
+  pointerdown({ event }) {
+    if (this.locked) return
+
     this.downViewTransform = this.camera.viewTransform
     this.downPoint = { x: event.clientX, y: event.clientY }
     this.dragDistance = 0
@@ -152,6 +158,8 @@ export class ZNavigator {
   }
 
   wheel({ event, pickedNodes }) {
+    if (this.locked) return
+
     if (event.deltaY < 0) {
       const zoomPath = this.findFocusPath(pickedNodes[0])
       if (zoomPath.length === 0) {

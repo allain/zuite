@@ -4,7 +4,7 @@ import { ZPoint } from "./utils/ZPoint.mjs"
 import { ZTransformActivity } from "./activities/ZTransformActivity.mjs"
 
 export class ZNode {
-  constructor(options) {
+  constructor(options = {}) {
     this.parent = null
     this.children = []
     this._listeners = new Set()
@@ -13,13 +13,14 @@ export class ZNode {
     this.invalidPaint = true
 
     this.transform = new ZTransform()
-    this.visible = true
+    this.visible =
+      typeof options.visible === "undefined" ? true : options.visible
 
-    this.focusable = options?.focusable || false
-    this.minScale = options?.minScale || 0
-    this.fillStyle = options?.fillStyle || null
-    this.bounds = this._prepBounds(options?.bounds)
-    this.bufferSize = options?.bufferSize || false
+    this.focusable = options.focusable || false
+    this.minScale = options.minScale || 0
+    this.fillStyle = options.fillStyle || null
+    this.bounds = this._prepBounds(options.bounds)
+    this.bufferSize = options.bufferSize || false
   }
 
   _prepBounds(bounds) {
