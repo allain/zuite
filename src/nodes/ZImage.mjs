@@ -1,10 +1,10 @@
-import { ZNode } from "../ZNode.mjs"
+import { ZNode } from '../ZNode.mjs'
 
 export class ZImage extends ZNode {
   constructor(href, options = {}) {
     super(options)
 
-    this.url = href ? href.url || href : ""
+    this.url = href ? href.url || href : ''
 
     this.loaded = false
 

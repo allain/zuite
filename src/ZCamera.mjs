@@ -4,23 +4,23 @@ import { ZPoint } from './utils/ZPoint.mjs'
 import { ZTransform } from './utils/ZTransform.mjs'
 
 export class ZCamera extends ZNode {
-  constructor () {
+  constructor() {
     super()
     this.layers = []
 
     this._viewTransform = new ZTransform()
   }
 
-  get viewTransform () {
+  get viewTransform() {
     return this._viewTransform
   }
 
-  set viewTransform (newTransform) {
+  set viewTransform(newTransform) {
     this._viewTransform = newTransform
     this.invalidatePaint()
   }
 
-  paint (ctx, displayScale = 1) {
+  paint(ctx, displayScale = 1) {
     super.paint(ctx)
 
     ctx.save()
@@ -38,7 +38,7 @@ export class ZCamera extends ZNode {
     ctx.restore()
   }
 
-  addLayer (layer) {
+  addLayer(layer) {
     if (this.layers.includes(layer)) return
 
     this.layers.push(layer)
@@ -47,13 +47,13 @@ export class ZCamera extends ZNode {
     this.invalidatePaint()
   }
 
-  removeLayer (layer) {
-    this.layers = this.layers.filter(l => l !== layer)
+  removeLayer(layer) {
+    this.layers = this.layers.filter((l) => l !== layer)
 
     this.invalidatePaint()
   }
 
-  getPickedNodes (x, y) {
+  getPickedNodes(x, y) {
     const viewInverse = this._viewTransform.inverse
     const mousePoint = new ZPoint(x, y)
     const globalPoint = viewInverse.transform(mousePoint)
@@ -68,7 +68,7 @@ export class ZCamera extends ZNode {
     return pickedNodes
   }
 
-  _getPickedNodes (parent, parentPoint) {
+  _getPickedNodes(parent, parentPoint) {
     const pickedChildren = []
 
     for (const child of parent.children) {
@@ -84,7 +84,7 @@ export class ZCamera extends ZNode {
       : pickedChildren
   }
 
-  animateViewToTransform (transform, duration, easing) {
+  animateViewToTransform(transform, duration, easing) {
     this.root.scheduler.schedule(
       new ZViewTransformActivity(this, transform, duration, easing)
     )

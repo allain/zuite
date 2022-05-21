@@ -1,7 +1,7 @@
-import { ZBounds } from "./utils/ZBounds.mjs"
-import { ZTransform } from "./utils/ZTransform.mjs"
-import { ZPoint } from "./utils/ZPoint.mjs"
-import { ZTransformActivity } from "./activities/ZTransformActivity.mjs"
+import { ZBounds } from './utils/ZBounds.mjs'
+import { ZTransform } from './utils/ZTransform.mjs'
+import { ZPoint } from './utils/ZPoint.mjs'
+import { ZTransformActivity } from './activities/ZTransformActivity.mjs'
 
 export class ZNode {
   constructor(options = {}) {
@@ -14,7 +14,7 @@ export class ZNode {
 
     this.transform = new ZTransform()
     this.visible =
-      typeof options.visible === "undefined" ? true : options.visible
+      typeof options.visible === 'undefined' ? true : options.visible
 
     this.focusable = options.focusable || false
     this.minScale = options.minScale || 0
@@ -266,7 +266,7 @@ export class ZNode {
     if (this.parent && this.parent.children.length > 1) {
       this.parent.children = [
         this,
-        ...this.parent.children.filter((c) => c !== this),
+        ...this.parent.children.filter((c) => c !== this)
       ]
       this.invalidatePaint()
     }
@@ -277,7 +277,7 @@ export class ZNode {
     if (this.parent && this.parent.children.length > 1) {
       this.parent.children = [
         ...this.parent.children.filter((c) => c !== this),
-        this,
+        this
       ]
 
       this.invalidatePaint()

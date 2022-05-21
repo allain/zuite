@@ -3,7 +3,7 @@ import { ZInterpolatingActivity } from './ZInterpolatingActivity.mjs'
 import { ZTransform } from '../utils/ZTransform.mjs'
 
 export class ZViewTransformActivity extends ZInterpolatingActivity {
-  constructor (camera, targetTransform, duration, easing = linear) {
+  constructor(camera, targetTransform, duration, easing = linear) {
     super()
     this.duration = duration
     this.camera = camera
@@ -13,7 +13,7 @@ export class ZViewTransformActivity extends ZInterpolatingActivity {
     this.easing = easing
   }
 
-  interpolate (zeroToOne) {
+  interpolate(zeroToOne) {
     const dest = ZTransform.lerp(
       this.source,
       this.target,
@@ -23,7 +23,7 @@ export class ZViewTransformActivity extends ZInterpolatingActivity {
     this.camera.viewTransform = dest
   }
 
-  finished () {
+  finished() {
     this.camera.viewTransform = this.target
   }
 }

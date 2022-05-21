@@ -2,28 +2,28 @@ import { ZBounds } from './ZBounds.mjs'
 import { ZPoint } from './ZPoint.mjs'
 
 export class ZTransform {
-  constructor (values = [1, 0, 0, 1, 0, 0]) {
+  constructor(values = [1, 0, 0, 1, 0, 0]) {
     this.values = values
     if (this.values.length !== 6) {
       throw new Error('invalid values')
     }
   }
 
-  scaleBy (ratio) {
+  scaleBy(ratio) {
     this.values[0] *= ratio
     this.values[3] *= ratio
 
     return this
   }
 
-  translateBy (dx, dy) {
+  translateBy(dx, dy) {
     this.values[4] += dx
     this.values[5] += dy
 
     return this
   }
 
-  rotateBy (theta) {
+  rotateBy(theta) {
     const c = Math.cos(theta)
     const s = Math.sin(theta)
 
@@ -32,7 +32,7 @@ export class ZTransform {
     return this
   }
 
-  transformBy (t2) {
+  transformBy(t2) {
     const m1 = this.values
     const m2 = t2 instanceof ZTransform ? t2.values : t2
 
@@ -58,12 +58,12 @@ export class ZTransform {
     return this
   }
 
-  applyTo (ctx) {
+  applyTo(ctx) {
     const m = this.values
     ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5])
   }
 
-  equals (t) {
+  equals(t) {
     if (t instanceof ZTransform) {
       t = t.values
     }
@@ -72,7 +72,7 @@ export class ZTransform {
     return this.values.every((v, i) => v === t[i])
   }
 
-  transform (target) {
+  transform(target) {
     const m = this.values
     if (target instanceof ZPoint) {
       return new ZPoint(
@@ -112,7 +112,7 @@ export class ZTransform {
   }
 
   /** Returns the inverse matrix for this ZTransform */
-  get inverse () {
+  get inverse() {
     const m = this.values,
       det = m[0] * m[3] - m[1] * m[2],
       values = [
@@ -127,7 +127,7 @@ export class ZTransform {
     return new ZTransform(values)
   }
 
-  get scale () {
+  get scale() {
     const p = new ZPoint(0, 1)
     const tp = this.transform(p)
     tp.x -= this.values[4]
@@ -135,7 +135,7 @@ export class ZTransform {
     return Math.sqrt(tp.x * tp.x + tp.y * tp.y)
   }
 
-  static lerp (t1, t2, zeroToOne) {
+  static lerp(t1, t2, zeroToOne) {
     return new ZTransform(
       // eslint-disable-next-line security/detect-object-injection
       t1.values.map((t, i) => t + zeroToOne * (t2.values[i] - t))

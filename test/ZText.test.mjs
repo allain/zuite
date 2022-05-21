@@ -1,7 +1,7 @@
 import { expect } from '@esm-bundle/chai'
 import { ZText } from '../src/nodes/ZText.mjs'
 
-function mockFn (handler = () => {}) {
+function mockFn(handler = () => {}) {
   const fn = (...args) => {
     fn.calls.push(args)
     const result = handler(...args)
@@ -53,28 +53,16 @@ it('renders lines when scale is too small', () => {
 })
 
 it('wraps if txt is too long', () => {
-  const t = new ZText(
-    Array(1)
-      .fill('M')
-      .join(' ')
-  )
+  const t = new ZText(Array(1).fill('M').join(' '))
   expect(t.fullBounds.height).to.equal(20)
 
-  const t2 = new ZText(
-    Array(50)
-      .fill('M')
-      .join(' ')
-  )
+  const t2 = new ZText(Array(50).fill('M').join(' '))
   expect(t2.fullBounds.height).to.equal(40)
 })
 
 // TODO
 it.skip('merges lines when the scale is too small', () => {
-  const t = new ZText(
-    Array(500)
-      .fill('Hello')
-      .join(' ')
-  )
+  const t = new ZText(Array(500).fill('Hello').join(' '))
   const ctx = {
     fillText: mockFn(() => {}),
 

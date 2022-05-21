@@ -1,7 +1,7 @@
 import { ZActivity } from './ZActivity.mjs'
 
 export class ZInterpolatingActivity extends ZActivity {
-  constructor (options) {
+  constructor(options) {
     super(options)
 
     this.stepping = false
@@ -14,7 +14,7 @@ export class ZInterpolatingActivity extends ZActivity {
     }
   }
 
-  step (ellapsedMillis) {
+  step(ellapsedMillis) {
     if (ellapsedMillis >= this.duration) {
       return false
     }
@@ -24,5 +24,5 @@ export class ZInterpolatingActivity extends ZActivity {
     return true
   }
 
-  interpolate (/*zeroToOne*/) {}
+  interpolate(/*zeroToOne*/) {}
 }

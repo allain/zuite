@@ -7,10 +7,10 @@
   "main": "dist/zuite.min.js",
   "scripts": {
     "build": "npm run build:esm && npm run build:js",
-    "build:js": "esbuild --format=iife --minify --sourcemap --bundle --outfile=dist/zuite.min.js --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
-    "build:esm": "esbuild --format=esm --minify --sourcemap --bundle --outfile=dist/zuite.min.mjs --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
-    "deploy": "esbuild --format=esm --minify --sourcemap --bundle --outfile=examples/zuite.min.mjs --target=chrome58,firefox57,safari11,edge16 src/index.mjs",
-    "format": "prettier-standard --format src test",
+    "build:js": "esbuild --format=iife --minify --sourcemap --bundle --outfile=dist/zuite.min.js src/index.mjs",
+    "build:esm": "esbuild --format=esm --minify --sourcemap --bundle --outfile=dist/zuite.min.mjs src/index.mjs",
+    "deploy": "esbuild --format=esm --minify --sourcemap --bundle --outfile=examples/zuite.min.mjs src/index.mjs",
+    "format": "prettier --write './src/**/*.mjs' './test/**/*.mjs'",
     "lint": "eslint \"src/**\" \"test/**/*.mjs\"",
     "test": "web-test-runner test/**/*.test.mjs --node-resolve",
     "preexamples": "npm run build && cp ./dist/zuite.* ./examples",
@@ -18,14 +18,15 @@
     "prepublishOnly": "npm run format && npm test && npm run build"
   },
   "devDependencies": {
-    "@esm-bundle/chai": "^4.1.5",
-    "@web/test-runner": "^0.12.2",
-    "@web/test-runner-chrome": "^0.9.0",
-    "esbuild": "^0.8.31",
-    "eslint": "^7.17.0",
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@web/test-runner": "^0.13.28",
+    "@web/test-runner-chrome": "^0.10.7",
+    "chai": "^4.3.6",
+    "esbuild": "^0.14.39",
+    "eslint": "^8.16.0",
     "eslint-plugin-security": "^1.4.0",
-    "http-server": "^0.12.3",
-    "prettier-standard": "^16.4.1"
+    "http-server": "^14.1.0",
+    "prettier": "^2.6.2"
   },
   "dependencies": {
     "html2canvas": "^1.0.0-rc.7"

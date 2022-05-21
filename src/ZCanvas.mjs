@@ -1,16 +1,16 @@
-import { ZPoint } from "./utils/ZPoint.mjs"
-import { ZBounds } from "./utils/ZBounds.mjs"
-import { ZCamera } from "./ZCamera.mjs"
-import { ZLayer } from "./ZLayer.mjs"
-import { ZRoot } from "./ZRoot.mjs"
-import { ZText } from "./nodes/ZText.mjs"
+import { ZPoint } from './utils/ZPoint.mjs'
+import { ZBounds } from './utils/ZBounds.mjs'
+import { ZCamera } from './ZCamera.mjs'
+import { ZLayer } from './ZLayer.mjs'
+import { ZRoot } from './ZRoot.mjs'
+import { ZText } from './nodes/ZText.mjs'
 
 export class ZCanvas {
   constructor(canvas, root = new ZRoot()) {
     const _pCanvas = this
 
     this.canvas = canvas
-    canvas.font = ZText.fontSize + "px " + ZText.font
+    canvas.font = ZText.fontSize + 'px ' + ZText.font
     this.root = root
     const camera = (this.camera = new ZCamera())
     this.camera.bounds = new ZBounds(0, 0, canvas.width, canvas.height)
@@ -46,8 +46,8 @@ export class ZCanvas {
       const mouseOutNodes = subtract(oldNodes, newNodes)
       const mouseOverNodes = subtract(newNodes, oldNodes)
 
-      dispatchEvent("mouseout", event, mouseOutNodes)
-      dispatchEvent("mouseover", event, mouseOverNodes)
+      dispatchEvent('mouseout', event, mouseOutNodes)
+      dispatchEvent('mouseover', event, mouseOverNodes)
     }
 
     function processMouseEvent(name, event) {
@@ -65,35 +65,35 @@ export class ZCanvas {
       previousPickedNodes = newPickedNodes
     }
 
-    canvas.addEventListener("contextmenu", (event) => {
+    canvas.addEventListener('contextmenu', (event) => {
       event.stopPropagation()
       event.preventDefault()
     })
 
     for (const eventName of [
-      "click",
-      "mousemove",
-      "mousedown",
-      "mouseup",
-      "wheel",
-      "pointerover",
-      "pointerenter",
-      "pointerdown",
-      "pointermove",
-      "pointerup",
-      "pointercancel",
-      "pointerout",
-      "pointerleave",
-      "gotpointercapture",
-      "lostpointercapture",
+      'click',
+      'mousemove',
+      'mousedown',
+      'mouseup',
+      'wheel',
+      'pointerover',
+      'pointerenter',
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'pointercancel',
+      'pointerout',
+      'pointerleave',
+      'gotpointercapture',
+      'lostpointercapture'
     ]) {
       canvas.addEventListener(eventName, (event) =>
         processMouseEvent(eventName, event)
       )
     }
 
-    canvas.addEventListener("mouseout", (event) => {
-      dispatchEvent("mouseout", event, previousPickedNodes)
+    canvas.addEventListener('mouseout', (event) => {
+      dispatchEvent('mouseout', event, previousPickedNodes)
       previousPickedNodes = []
     })
   }
@@ -102,10 +102,10 @@ export class ZCanvas {
     const root = this.camera.root
     if (!root.invalidPaint) return
 
-    const ctx = this.canvas.getContext("2d")
+    const ctx = this.canvas.getContext('2d')
 
-    ctx.font = ZText.fontSize + "px " + ZText.font
-    ctx.fillStyle = this.fillStyle || "rgb(255,255,255)"
+    ctx.font = ZText.fontSize + 'px ' + ZText.font
+    ctx.fillStyle = this.fillStyle || 'rgb(255,255,255)'
 
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 

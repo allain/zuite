@@ -5,7 +5,7 @@ import { ZTransform } from '../src/utils/ZTransform.mjs'
 import { ZBounds } from '../src/utils/ZBounds.mjs'
 import { ZNode } from '../src/ZNode.mjs'
 
-function mock (...mockMethods) {
+function mock(...mockMethods) {
   const dummy = { calls: new Map() }
 
   for (const methodName of mockMethods) {
@@ -65,7 +65,7 @@ it('fills rect when bounds and fillStyle are good', () => {
 
   let fillRectArgs
   const mockCtx = {
-    fillRect (...args) {
+    fillRect(...args) {
       fillRectArgs = args
     }
   }
@@ -84,7 +84,6 @@ it('supports specifying bounds using an array', () => {
   expect(n.bounds.y).to.equal(2)
   expect(n.bounds.width).to.equal(3)
   expect(n.bounds.height).to.equal(4)
-
 })
 
 it('fillPaint ignores invisible nodes', () => {
@@ -92,7 +91,7 @@ it('fillPaint ignores invisible nodes', () => {
   n.visible = false
 
   n.fullPaint({
-    save () {
+    save() {
       throw new Error('should not be called')
     }
   })
@@ -104,15 +103,15 @@ it('fillPaint saves and restores context', () => {
   let saveCalls = 0
   let restoreCalls = 0
   n.fullPaint({
-    save () {
+    save() {
       saveCalls++
     },
-    restore () {
+    restore() {
       restoreCalls++
     },
-    transform () {},
-    perform () {},
-    applyTo () {}
+    transform() {},
+    perform() {},
+    applyTo() {}
   })
 
   expect(saveCalls).to.equal(1)
@@ -261,7 +260,7 @@ it('can dispatch event', () => {
   return new Promise((resolve, reject) => {
     try {
       n.addListener({
-        test ({ event, pickedNodes }) {
+        test({ event, pickedNodes }) {
           expect(event.type).to.equal('test')
           expect(pickedNodes).to.deep.equal([nPicked])
           resolve()
@@ -321,7 +320,7 @@ it.skip('invalidates parent bounds when setting transform', () => {
 it('lays out children if layoutChildren method present', () => {
   let called = false
   class LayoutNode extends ZNode {
-    layoutChildren () {
+    layoutChildren() {
       called = true
     }
   }

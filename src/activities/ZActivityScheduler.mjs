@@ -1,5 +1,5 @@
 export class ZActivityScheduler {
-  constructor (frameRate) {
+  constructor(frameRate) {
     this.pollingRate = frameRate
     this.nextCallTime = 0
     this.activities = []
@@ -7,14 +7,14 @@ export class ZActivityScheduler {
     this.globalTime = new Date().getTime()
   }
 
-  schedule (activity, startTime) {
+  schedule(activity, startTime) {
     startTime = startTime || new Date().getTime()
     activity.startTime = startTime
     this.activities.push(activity)
     this._start()
   }
 
-  step () {
+  step() {
     const keepers = []
 
     this.globalTime = new Date().getTime()
@@ -44,7 +44,7 @@ export class ZActivityScheduler {
     }
   }
 
-  _start () {
+  _start() {
     if (!this.intervalID) {
       const _this = this
       this.intervalID = setInterval(function () {
@@ -54,7 +54,7 @@ export class ZActivityScheduler {
     }
   }
 
-  _stop () {
+  _stop() {
     if (this.intervalID) {
       clearInterval(this.intervalID)
       this.intervalID = null

@@ -4,7 +4,7 @@ import { ZNode } from '../ZNode.mjs'
 const textMeasurements = new Map()
 
 export class ZText extends ZNode {
-  constructor (text = '', options = {}) {
+  constructor(text = '', options = {}) {
     super({ ...options, minScale: 0.01 })
 
     let processed = textMeasurements.get(text)
@@ -17,7 +17,7 @@ export class ZText extends ZNode {
     this.bounds.add(processed.bounds)
   }
 
-  processText (text, maxWidth) {
+  processText(text, maxWidth) {
     const bounds = new ZBounds()
     bounds.add(0, 0)
 
@@ -31,7 +31,7 @@ export class ZText extends ZNode {
     text
       .trim()
       .split(/[ \t]*\n/g)
-      .forEach(line => {
+      .forEach((line) => {
         const words = line.matchAll(/[^\s]+|\s+/g)
 
         for (const word of words) {
@@ -63,7 +63,7 @@ export class ZText extends ZNode {
     }
   }
 
-  measureText (text) {
+  measureText(text) {
     const metric = hiddenContext.measureText(text)
     return (
       Math.abs(metric.actualBoundingBoxLeft) +
@@ -71,7 +71,7 @@ export class ZText extends ZNode {
     )
   }
 
-  paint (ctx, displayScale) {
+  paint(ctx, displayScale) {
     if (!this.lines.length) return
 
     const displayHeight = this.fullBounds.height * displayScale

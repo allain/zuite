@@ -1,5 +1,5 @@
 export class ZActivity {
-  constructor (options) {
+  constructor(options) {
     this.stepping = false
     if (typeof options === 'undefined') return
 
@@ -18,9 +18,9 @@ export class ZActivity {
     }
   }
 
-  started () {}
+  started() {}
 
-  step (/*ellapsedMillis*/) {}
+  step(/*ellapsedMillis*/) {}
 
-  finished () {}
+  finished() {}
 }

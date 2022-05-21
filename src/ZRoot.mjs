@@ -2,7 +2,7 @@ import { ZActivityScheduler } from './activities/ZActivityScheduler.mjs'
 import { ZNode } from './ZNode.mjs'
 
 export class ZRoot extends ZNode {
-  constructor (args) {
+  constructor(args) {
     super(args)
 
     this.invalidPaint = true
@@ -10,11 +10,11 @@ export class ZRoot extends ZNode {
     this.scheduler = new ZActivityScheduler(25)
   }
 
-  get root () {
+  get root() {
     return this
   }
 
-  schedule (activity) {
+  schedule(activity) {
     this.scheduler.schedule(activity)
   }
 }

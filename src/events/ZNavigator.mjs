@@ -1,7 +1,7 @@
-import { ZLayer } from "../ZLayer.mjs"
-import { ZPoint } from "../utils/ZPoint.mjs"
-import { ZTransform } from "../utils/ZTransform.mjs"
-import * as easings from "../easings.mjs"
+import { ZLayer } from '../ZLayer.mjs'
+import { ZPoint } from '../utils/ZPoint.mjs'
+import { ZTransform } from '../utils/ZTransform.mjs'
+import * as easings from '../easings.mjs'
 
 function debounce(func, wait, immediate) {
   var timeout
@@ -88,7 +88,7 @@ export class ZNavigator {
     // panning
     if (event.buttons === 1 && dragDistance > 5) {
       this.camera.viewTransform = new ZTransform([
-        ...this.downViewTransform.values,
+        ...this.downViewTransform.values
       ]).translateBy(drag.x, drag.y)
     }
   }

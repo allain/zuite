@@ -1,5 +1,5 @@
 export class ZBounds {
-  constructor (...args) {
+  constructor(...args) {
     if (args.length === 1) {
       this.x = args[0].x
       this.y = args[0].y
@@ -15,7 +15,7 @@ export class ZBounds {
     }
   }
 
-  equals (bounds) {
+  equals(bounds) {
     return (
       bounds.x === this.x &&
       bounds.y === this.y &&
@@ -24,11 +24,11 @@ export class ZBounds {
     )
   }
 
-  get empty () {
+  get empty() {
     return this.width === 0 && this.height === 0
   }
 
-  add (...args) {
+  add(...args) {
     if (args.length === 1) {
       const src = args[0]
       this._add(src.x, src.y, src.width || 0, src.height || 0)
@@ -37,7 +37,7 @@ export class ZBounds {
     }
   }
 
-  _add (x, y, width, height) {
+  _add(x, y, width, height) {
     if (this.touched) {
       const newX = Math.min(x, this.x)
       const newY = Math.min(y, this.y)
@@ -56,7 +56,7 @@ export class ZBounds {
     }
   }
 
-  contains (...args) {
+  contains(...args) {
     let x, y
     if (args.length === 1) {
       x = args[0].x
@@ -76,7 +76,7 @@ export class ZBounds {
     )
   }
 
-  intersects ({ x, y, width, height }) {
+  intersects({ x, y, width, height }) {
     return !(
       x + width < this.x ||
       x > this.x + this.width ||
