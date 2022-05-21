@@ -1,5 +1,7 @@
 .vscode
 dist
+examples/zuite.min.js
+examples/zuite.min.js.map
 examples/zuite.min.mjs
 examples/zuite.min.mjs.map
 coverage
