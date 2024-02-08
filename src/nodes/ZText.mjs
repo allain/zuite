@@ -37,7 +37,7 @@ export class ZText extends ZNode {
         for (const word of words) {
           testLine = nextLine + word
           lastWidth = testWidth
-          testWidth = this.measureText(testLine)
+          testWidth = ZText.measureText(testLine)
           if (testWidth > maxWidth) {
             lines.push({ text: nextLine, width: lastWidth })
             nextLine = word
@@ -63,7 +63,7 @@ export class ZText extends ZNode {
     }
   }
 
-  measureText(text) {
+  static measureText(text) {
     const metric = hiddenContext.measureText(text)
     return (
       Math.abs(metric.actualBoundingBoxLeft) +

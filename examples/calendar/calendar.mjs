@@ -1,8 +1,8 @@
-import { ZBounds, ZCanvas, ZNode, ZText, ZNavigator } from '../zuite.min.mjs'
+import { ZCanvas, ZNode, ZText, ZNavigator } from '../zuite.min.mjs'
 import { MonthNode } from './MonthNode.mjs'
 import { YearNode } from './YearNode.mjs'
 
-function main () {
+function main() {
   const canvasEl = document.querySelector('canvas')
   canvasEl.width = window.innerWidth
   canvasEl.height = window.innerHeight
