@@ -60,7 +60,7 @@ export class ZNode {
 
     const inViewport =
       !ctx.clipBounds || ctx.clipBounds.intersects(this.globalFullBounds)
-    if (!inViewport) return
+    if (false && !inViewport) return
 
     paintScale *= this.transform.values[0]
     if (paintScale < this.minScale) return

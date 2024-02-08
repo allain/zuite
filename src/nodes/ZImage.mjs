@@ -19,6 +19,9 @@ export class ZImage extends ZNode {
 
       this.invalidateBounds()
       this.loaded = true
+      if (options.loaded) {
+        options.loaded(this)
+      }
 
       this.invalidatePaint()
     }

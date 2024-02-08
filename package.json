@@ -29,6 +29,7 @@
     "prettier": "^2.6.2"
   },
   "dependencies": {
+    "@mathigon/euclid": "^1.1.17",
     "html2canvas": "^1.0.0-rc.7"
   }
 }

@@ -55,7 +55,9 @@ export class ZNavigator {
   }
 
   zoomOut() {
-    const newFocus = this.findUp(this.lastFocus.parent, () => true)
+    const newFocus = this.lastFocus
+      ? this.findUp(this.lastFocus.parent, () => true)
+      : null
 
     this.zoomTo(newFocus || this.layer)
   }
@@ -77,6 +79,7 @@ export class ZNavigator {
 
   pointermove({ event }) {
     if (!this.downPoint) return
+    if (event.defaultPrevented) return
     const drag = new ZPoint(
       event.clientX - this.downPoint.x,
       event.clientY - this.downPoint.y
@@ -95,6 +98,7 @@ export class ZNavigator {
 
   pointerup({ event, pickedNodes }) {
     if (this.locked) return
+    if (event.defaultPrevented) return
 
     this.downPoint = null
     const dragDistance = this.dragDistance

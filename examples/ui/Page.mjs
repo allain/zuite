@@ -1,29 +1,40 @@
 import { ZNode } from '../js/ZNode.mjs'
 import { ZText } from '../js/nodes/ZText.mjs'
+import { DragHandler } from './DragHandler.mjs'
 import { Section } from './Section.mjs'
-import { PADDING, PAGE_PADDING } from './constants.mjs'
+import {
+  PADDING,
+  PAGE_BODY_BG,
+  PAGE_HEADER_BG,
+  PAGE_HEADER_TEXT,
+  PAGE_PADDING
+} from './constants.mjs'
 
 export class Page extends ZNode {
   constructor(title, { sections = [] } = {}) {
     super({
       focusable: true,
       bounds: [0, 0, 320, 0],
-      fillStyle: '#ffffff'
+      fillStyle: PAGE_BODY_BG
     })
+
+    const page = this
 
     const headerNode = new ZNode({
       focusable: false,
       bounds: [0, 0, 320, ZText.fontSize + PADDING * 2],
-      fillStyle: '#355464'
+      fillStyle: PAGE_HEADER_BG
     })
 
     this._headerNode = headerNode
 
     headerNode.addChild(
       new ZText(title, {
-        fillStyle: '#ffffff'
+        fillStyle: PAGE_HEADER_TEXT
       }).translateBy(PADDING, PADDING)
     )
+
+    headerNode.addListener(new DragHandler(page))
 
     this.addChild(headerNode)
 

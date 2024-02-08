@@ -2,18 +2,29 @@ import { ZNode } from '../js/ZNode.mjs'
 import { ZImage } from '../js/nodes/ZImage.mjs'
 import { ZRect } from '../js/nodes/ZRect.mjs'
 import { ZText } from '../js/nodes/ZText.mjs'
-import { PADDING, PAGE_PADDING, ROUNDING } from './constants.mjs'
+import {
+  PADDING,
+  PAGE_PADDING,
+  ROUNDING,
+  SECTION_BG,
+  SECTION_TEXT,
+  SECTION_TEXT_LIGHT,
+  SECTION_TITLE_TEXT
+} from './constants.mjs'
 
 export class Section extends ZNode {
   constructor({ type, ...data }) {
-    super({ bounds: [0, 0, 320 - 2 * PAGE_PADDING, 0], focusable: true })
+    super({ bounds: [0, 0, 320 - 2 * PAGE_PADDING, 0] })
 
-    const bgNode = new ZRect({ fillStyle: '#E6EEF2', radius: ROUNDING })
+    const bgNode = new ZRect({ fillStyle: SECTION_BG, radius: ROUNDING })
+    this.bgNode = bgNode
     this.addChild(bgNode)
 
     const { title } = data
     if (title) {
-      const titleNode = new ZText(title, { fillStyle: '#355464' }).scaleBy(1.25)
+      const titleNode = new ZText(title, {
+        fillStyle: SECTION_TITLE_TEXT
+      }).scaleBy(1.25)
       this.addChild(titleNode.translateBy(PADDING, PADDING))
     }
 
@@ -33,8 +44,10 @@ export class Section extends ZNode {
       this.injectMasonrySection(data)
     } else if (type === 'article') {
       this.injectArticleSection(data)
+    } else if (type === 'picture') {
+      this.injectPictureSection(data)
     } else if (type === 'button') {
-      bgNode.fillStyle = '#C5D7E0'
+      bgNode.fillStyle = SECTION_TEXT
       this.addChild(
         new ZText(data.label, { fillStyle: data.color }).translateBy(
           (this.bounds.width - ZText.measureText(data.label)) / 2,
@@ -42,7 +55,7 @@ export class Section extends ZNode {
         )
       )
     } else if (type === 'separator') {
-      bgNode.fillStyle = '#C5D7E0'
+      bgNode.fillStyle = SECTION_TEXT
       bgNode.bounds.height = PADDING
       bgNode.bounds.width = this.bounds.width / 4
       bgNode.translateBy(this.bounds.width * 0.75 * 0.5, 0)
@@ -63,7 +76,7 @@ export class Section extends ZNode {
         const cellRect = new ZRect({
           radius: ROUNDING,
           bounds: [0, 0, colW, ZText.fontSize],
-          fillStyle: col < data.done ? '#FFFFFF' : '#C5D7E0'
+          fillStyle: col < data.done ? SECTION_TEXT_LIGHT : SECTION_TEXT
         }).translateBy(PADDING + (colW + PADDING) * col, cellY)
 
         this.addChild(cellRect)
@@ -79,7 +92,7 @@ export class Section extends ZNode {
       const stepRect = new ZRect({
         radius: ROUNDING,
         bounds: [0, 0, stepW, ZText.fontSize],
-        fillStyle: i < data.done ? '#FFFFFF' : '#C5D7E0'
+        fillStyle: i < data.done ? SECTION_TEXT_LIGHT : SECTION_TEXT
       }).translateBy(PADDING + (stepW + PADDING) * i, stepY)
 
       this.addChild(stepRect)
@@ -96,7 +109,7 @@ export class Section extends ZNode {
       this.addChild(
         new ZRect({
           radius: ROUNDING,
-          fillStyle: '#C5D7E0',
+          fillStyle: SECTION_TEXT,
           bounds: [
             0,
             0,
@@ -109,7 +122,7 @@ export class Section extends ZNode {
       this.addChild(
         new ZRect({
           radius: ROUNDING,
-          fillStyle: '#ffffff',
+          fillStyle: SECTION_TEXT_LIGHT,
           bounds: [
             parentWidth * 0.25 + PADDING,
             0,
@@ -130,7 +143,7 @@ export class Section extends ZNode {
         this.addChild(
           new ZRect({
             radius: ROUNDING,
-            fillStyle: '#C5D7E0',
+            fillStyle: SECTION_TEXT,
             bounds: [0, 0, ZText.fontSize, ZText.fontSize]
           }).translateBy(PADDING, currentY)
         )
@@ -138,7 +151,7 @@ export class Section extends ZNode {
       this.addChild(
         new ZRect({
           radius: ROUNDING,
-          fillStyle: '#C5D7E0',
+          fillStyle: SECTION_TEXT,
           bounds: [
             bullets ? PADDING + ZText.fontSize : 0,
             0,
@@ -159,7 +172,7 @@ export class Section extends ZNode {
       this.addChild(
         new ZRect({
           radius: ROUNDING,
-          fillStyle: '#C5D7E0',
+          fillStyle: SECTION_TEXT,
           bounds: [
             0,
             0,
@@ -190,7 +203,7 @@ export class Section extends ZNode {
         const cellRect = new ZRect({
           radius: ROUNDING,
           bounds: [0, 0, colW, cellHeight],
-          fillStyle: '#C5D7E0'
+          fillStyle: SECTION_TEXT
         }).translateBy(PADDING + (colW + PADDING) * col, cellY)
         cellY += cellHeight + PADDING
 
@@ -214,7 +227,7 @@ export class Section extends ZNode {
             innerWidth * (0.3 + Math.random() * 0.6),
             ZText.fontSize
           ],
-          fillStyle: '#C5D7E0'
+          fillStyle: SECTION_TEXT
         }).translateBy(PADDING, this.fullBounds.height + PADDING)
       )
 
@@ -241,7 +254,7 @@ export class Section extends ZNode {
     for (let bar = 0; bar < 3; bar++) {
       this.addChild(
         new ZRect({
-          fillStyle: '#C5D7E0',
+          fillStyle: SECTION_TEXT,
           radius: ROUNDING,
           bounds: [0, 0, ZText.fontSize, ZText.fontSize * 0.1]
         }).translateBy(PADDING, PADDING + bar * ZText.fontSize * 0.4)
@@ -250,7 +263,7 @@ export class Section extends ZNode {
 
     this.addChild(
       new ZRect({
-        fillStyle: '#ffffff',
+        fillStyle: SECTION_TEXT_LIGHT,
         radius: ROUNDING,
         bounds: [0, 0, width - PADDING * 4 - ZText.fontSize * 2, ZText.fontSize]
       }).translateBy(PADDING * 2 + ZText.fontSize, PADDING)
@@ -262,6 +275,25 @@ export class Section extends ZNode {
       )
         .translateBy(width - PADDING * 3, PADDING * 0.8)
         .scaleBy(0.15)
+    )
+  }
+
+  injectPictureSection() {
+    this.addChild(
+      new ZImage(
+        'https://widgets.clickncode.com/_uplandjs/icons/bootstrap/card-image.svg',
+        {
+          loaded: (node) => {
+            const ratio = (this.bounds.width - PADDING * 2) / node.bounds.width
+            node.scaleBy(ratio)
+            this.bgNode.bounds.height += ratio * node.bounds.height
+            this.bounds.height += ratio * node.bounds.height
+            this.parent.bounds.height += ratio * node.bounds.height
+            this.parent.parent.bounds.height += ratio * node.bounds.height
+          }
+        }
+      ).translateBy(PADDING, this.fullBounds.height)
+      // .scaleBy(0.15)
     )
   }
 }
