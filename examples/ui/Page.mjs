@@ -34,7 +34,7 @@ export class Page extends ZNode {
       }).translateBy(PADDING, PADDING)
     )
 
-    headerNode.addListener(new DragHandler(page))
+    headerNode.draggable = this
 
     this.addChild(headerNode)
 

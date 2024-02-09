@@ -22,7 +22,7 @@ export class DragHandler {
   }
 
   pointerdown({ event }) {
-    window.nav.locked = true
+    // window.nav.locked = true
     this._dragging = true
     this._dragStart = event.point
     this._startPos = this.target.offset
@@ -30,7 +30,7 @@ export class DragHandler {
 
   pointerup({ event }) {
     if (event.defaultPrevented) return
-    window.nav.locked = false
+    // window.nav.locked = false
 
     if (this._dragging) {
       this._dragging = false
