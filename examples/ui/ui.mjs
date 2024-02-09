@@ -5,6 +5,7 @@ import { Page } from './Page.mjs'
 import { ZRect } from '../js/nodes/ZRect.mjs'
 import { ZPoint } from '../js/utils/ZPoint.mjs'
 import { ZTransform } from '../js/utils/ZTransform.mjs'
+import * as easings from '../js/easings.mjs'
 
 import aStar from 'https://cdn.jsdelivr.net/npm/a-star@0.2.0/+esm'
 
@@ -90,7 +91,7 @@ class Connector extends ZNode {
       },
       heuristic(p) {
         for (const rect of dodgeRects) {
-          if (rect.contains(p)) return 1_000 // not infinity to keep ridiculous paths from happening
+          if (rect.contains(p)) return Number.POSITIVE_INFINITY
         }
         return Point.distance(p, p2)
       },
@@ -124,6 +125,22 @@ function expandRect(rect, size) {
     rect.w + size * 2,
     rect.h + size * 2
   )
+}
+
+function debounce(func, wait, immediate) {
+  var timeout
+  return function () {
+    var context = this,
+      args = arguments
+    var later = function () {
+      timeout = null
+      if (!immediate) func.apply(context, args)
+    }
+    var callNow = immediate && !timeout
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+    if (callNow) func.apply(context, args)
+  }
 }
 
 function douglasPeucker(points, epsilon) {
@@ -203,6 +220,9 @@ function main() {
   const layer = canvas.camera.layers[0]
 
   layer.addListener({
+    _dragDistance: 0,
+    _lastFocus: null,
+    _buttons: 0,
     _findUp(node, test) {
       return node === null || test(node)
         ? node
@@ -210,10 +230,13 @@ function main() {
     },
 
     pointerdown({ event, pickedNodes }) {
+      this._dragDistance = 0
+      this._buttons = event.buttons
       const focusNode = pickedNodes.find((n) =>
         this._findUp(n, (n) => n.draggable)
       )
       if (focusNode) {
+        this._lastFocus = focusNode
         this._dragging = focusNode.draggable
         this._dragStart = event.point
         this._startOffset = new ZPoint(
@@ -226,8 +249,46 @@ function main() {
         this._startViewTransform = canvas.camera.viewTransform.values
       }
     },
-    pointerup() {
+    pointerup({ pickedNodes }) {
       this._stopDragging()
+      const focusNode = pickedNodes.find((n) =>
+        this._findUp(n, (n) => n.focusable)
+      )
+
+      if (this._dragDistance < 10) {
+        if (focusNode) {
+          if (this._buttons === 1) {
+            this.zoomToRaw(focusNode)
+          } else if (this._buttons === 2) {
+            const parent = this._findUp(focusNode.parent, (n) => n.focusable)
+            if (parent) {
+              this.zoomToRaw(focusNode)
+            } else {
+              this.zoomToRaw(layer)
+            }
+          }
+        } else {
+          this.zoomToRaw(layer)
+        }
+      }
+    },
+    zoomToRaw(newFocus, duration = 500) {
+      if (!newFocus) {
+        newFocus = layer
+      }
+      this.lastFocus = newFocus
+
+      const globalTransform = newFocus.globalTransform
+      const inverse = globalTransform.inverse
+      const focusBounds =
+        newFocus === this.layer ? this.layer.fullBounds : newFocus.fullBounds
+
+      inverse.translateBy(
+        (canvas.camera.bounds.width - focusBounds.width) / 2,
+        (canvas.camera.bounds.height - focusBounds.height) / 2
+      )
+
+      canvas.camera.animateViewToTransform(inverse, duration, easings.inOutExpo)
     },
     _stopDragging() {
       this._dragging = null
@@ -245,12 +306,14 @@ function main() {
       if (this._startViewTransform) {
         const dx = event.clientX - this._dragStart.x
         const dy = event.clientY - this._dragStart.y
+        this._dragDistance = Math.sqrt(dx * dx + dy * dy)
         this._dragging.viewTransform = new ZTransform([
           ...this._startViewTransform
         ]).translateBy(dx, dy)
       } else {
         const dx = event.point.x - this._dragStart.x
         const dy = event.point.y - this._dragStart.y
+        this._dragDistance = Math.sqrt(dx * dx + dy * dy)
         this._dragging.offset = {
           x: this._startOffset.x + dx,
           y: this._startOffset.y + dy
@@ -258,6 +321,13 @@ function main() {
         this._dragging.invalidatePaint()
       }
     }
+    // wheel({ event, pickedNodes }) {
+    //   if (event.deltaY < 0) {
+    //     canvas.camera.scaleBy(0.9)
+    //   } else {
+    //     canvas.camera.scaleBy(1 / 0.9)
+    //   }
+    // }
   })
 
   canvas.fillStyle = '#aaaaaa'
