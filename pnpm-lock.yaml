@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@mathigon/euclid':
+    specifier: ^1.1.17
+    version: 1.1.21
   html2canvas:
     specifier: ^1.0.0-rc.7
     version: 1.4.1
@@ -146,6 +149,26 @@ packages:
   /@humanwhocodes/object-schema@2.0.2:
     resolution: {integrity: sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==}
     dev: true
+
+  /@mathigon/core@1.1.17:
+    resolution: {integrity: sha512-bW7z+u2oO0oa+1PLDszk3tOgdz0IPR+zqOZJ7f6tYba95INO0U2Bndg5J2QogQpG6Yie+/WbEyyO5TLS+vYHPw==}
+    engines: {node: '>=16'}
+    dev: false
+
+  /@mathigon/euclid@1.1.21:
+    resolution: {integrity: sha512-bldf1eTUCks4PPkTuoFLBAxLgi4osHhpuMfOROQ9v8oe1XjkYyxxL2DF++/llTKmr/KOhwqdhVX/OGoeJAHCiA==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@mathigon/core': 1.1.17
+      '@mathigon/fermat': 1.1.16
+    dev: false
+
+  /@mathigon/fermat@1.1.16:
+    resolution: {integrity: sha512-VS56gbejfOwJcFRAX9xWHR/JiNoUCX9FrtBxekQwIZs6uxpb3yUrv8HEFMhemVOVulos+/fuwM81OkmfwI3Jhg==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@mathigon/core': 1.1.17
+    dev: false
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}

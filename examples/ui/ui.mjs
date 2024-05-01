@@ -35,10 +35,11 @@ class Connector extends ZNode {
     )
     const fromCenter = fromRect.center
     const toPos = new Point(this.to.offset.x, this.to.offset.y)
+    const toScale = this.to.globalTransform.scale
     const toRect = new Rectangle(
       toPos,
-      this.to.fullBounds.width,
-      this.to.fullBounds.height
+      this.to.fullBounds.width * toScale,
+      this.to.fullBounds.height * toScale
     )
     const toCenter = toRect.center
 
@@ -125,22 +126,6 @@ function expandRect(rect, size) {
     rect.w + size * 2,
     rect.h + size * 2
   )
-}
-
-function debounce(func, wait, immediate) {
-  var timeout
-  return function () {
-    var context = this,
-      args = arguments
-    var later = function () {
-      timeout = null
-      if (!immediate) func.apply(context, args)
-    }
-    var callNow = immediate && !timeout
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-    if (callNow) func.apply(context, args)
-  }
 }
 
 function douglasPeucker(points, epsilon) {
@@ -283,9 +268,10 @@ function main() {
       const focusBounds =
         newFocus === this.layer ? this.layer.fullBounds : newFocus.fullBounds
 
+      const scale = canvas.camera.scale
       inverse.translateBy(
-        (canvas.camera.bounds.width - focusBounds.width) / 2,
-        (canvas.camera.bounds.height - focusBounds.height) / 2
+        (canvas.camera.bounds.width - focusBounds.width / scale) / 2,
+        (canvas.camera.bounds.height - focusBounds.height / scale) / 2
       )
 
       canvas.camera.animateViewToTransform(inverse, duration, easings.inOutExpo)
@@ -303,16 +289,18 @@ function main() {
         return
       }
 
+      const scale = canvas.camera.scale
+
       if (this._startViewTransform) {
-        const dx = event.clientX - this._dragStart.x
-        const dy = event.clientY - this._dragStart.y
+        const dx = (event.clientX - this._dragStart.x) / scale
+        const dy = (event.clientY - this._dragStart.y) / scale
         this._dragDistance = Math.sqrt(dx * dx + dy * dy)
         this._dragging.viewTransform = new ZTransform([
           ...this._startViewTransform
         ]).translateBy(dx, dy)
       } else {
-        const dx = event.point.x - this._dragStart.x
-        const dy = event.point.y - this._dragStart.y
+        const dx = (event.point.x - this._dragStart.x) / scale
+        const dy = (event.point.y - this._dragStart.y) / scale
         this._dragDistance = Math.sqrt(dx * dx + dy * dy)
         this._dragging.offset = {
           x: this._startOffset.x + dx,
@@ -322,10 +310,11 @@ function main() {
       }
     }
     // wheel({ event, pickedNodes }) {
+    //   const ratio = 0.95
     //   if (event.deltaY < 0) {
-    //     canvas.camera.scaleBy(0.9)
+    //     canvas.camera.scaleBy(ratio)
     //   } else {
-    //     canvas.camera.scaleBy(1 / 0.9)
+    //     canvas.camera.scaleBy(ratio)
     //   }
     // }
   })
@@ -431,7 +420,7 @@ function main() {
   })
 
   pages.addChild(page1)
-  pages.addChild(page3.translateBy(800, 0))
+  pages.addChild(page3.translateBy(800, 0).scaleBy(0.25))
   pages.addChild(page2.translateBy(400, 0))
 
   for (let i = 0; i < 5; i++) {
