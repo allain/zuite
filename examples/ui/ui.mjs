@@ -7,6 +7,8 @@ import { ZPoint } from '../js/utils/ZPoint.mjs'
 import { ZTransform } from '../js/utils/ZTransform.mjs'
 import * as easings from '../js/easings.mjs'
 
+import { SmlDocument } from '@stenway/sml'
+
 import aStar from 'https://cdn.jsdelivr.net/npm/a-star@0.2.0/+esm'
 
 import {
@@ -196,9 +198,9 @@ function drawSmoothLine(ctx, points) {
   ctx.stroke()
 }
 
-function main() {
+async function main() {
   const canvasEl = document.querySelector('canvas')
-  canvasEl.width = window.innerWidth
+  canvasEl.width = window.innerWidth - 300
   canvasEl.height = window.innerHeight
   const canvas = new ZCanvas(canvasEl)
 
@@ -320,10 +322,13 @@ function main() {
   })
 
   canvas.fillStyle = '#aaaaaa'
+  const siteEl = document.getElementById('site')
+  siteEl.height = window.innerHeight
 
   window.addEventListener('resize', () => {
     canvasEl.width = window.innerWidth
     canvasEl.height = window.innerHeight
+    siteEl.height = window.innerHeight
     canvas.bounds = [0, 0, window.innerWidth, window.innerHeight]
   })
   // const navigator = new ZNavigator(canvas.camera)
@@ -331,112 +336,89 @@ function main() {
   // layer.addListener(navigator)
 
   const pages = new ZNode()
-  const page1 = new Page('Landing Screen', {
-    sections: [
-      {
-        type: 'search'
-      },
-      {
-        type: 'text',
-        title: 'Text',
-        lines: 2
-      },
-      {
-        type: 'separator'
-      },
-      {
-        type: 'list',
-        title: 'All Topics',
-        lines: 4,
-        bullets: true
-      },
-      {
-        type: 'steps',
-        title: 'Phase / Stage',
-        done: 3,
-        total: 5
-      },
-      {
-        type: 'table',
-        title: 'Table',
-        rows: 4,
-        cols: 4
-      },
-      {
-        type: 'button',
-        label: 'Team'
-      },
-      {
-        type: 'button',
-        label: 'Approve',
-        color: '#D0193A'
-      }
-    ]
+
+  const params = new URLSearchParams(document.location.search)
+  const uiName = params.get('ui') ?? 'starter'
+  const spec = await fetch('/ui/uis/' + uiName + '.ui').then((res) =>
+    res.text()
+  )
+  siteEl.value = spec
+
+  siteEl.addEventListener('input', () => {
+    buildFromSite()
   })
 
-  const page2 = new Page('Page 2', {
-    sections: [
-      {
-        type: 'text',
-        title: 'Text Section 1',
-        lines: 1
-      },
-      {
-        type: 'text',
-        title: 'Text Section 2',
-        lines: 3
-      },
-      {
-        type: 'form',
-        title: 'Reset Password',
-        fields: 2
-      },
-      {
-        type: 'form',
-        title: 'Account Info',
-        fields: 4
+  siteEl.addEventListener('change', () => {
+    try {
+      const siteDoc = SmlDocument.parse(siteEl.value)
+      siteDoc.root.alignAttributes('  ', 1)
+      const newSiteDoc = siteDoc.toString(false)
+      if (newSiteDoc !== siteDoc) {
+        siteEl.value = newSiteDoc
+        // return
       }
-    ]
+    } catch (err) {
+      console.error(err)
+    }
   })
 
-  const page3 = new Page('Page 3', {
-    sections: [
-      {
-        type: 'masonry',
-        title: 'Common Topics',
-        cols: 5,
-        height: ZText.fontSize * 10
-      },
-      {
-        type: 'article',
-        title: 'Article',
-        headings: 2
-      },
-      {
-        type: 'picture',
-        title: 'Picture'
+  function buildFromSite() {
+    let siteDoc
+    try {
+      siteDoc = SmlDocument.parse(siteEl.value)
+      for (const child of pages.children) {
+        pages.removeChild(child)
       }
-    ]
-  })
+    } catch (err) {
+      console.error(err.message)
+      return
+    }
+    for (const pageInfo of siteDoc.root.elements()) {
+      const pageTitle = pageInfo.hasAttribute('title')
+        ? pageInfo.attribute('title').values.join(' ')
+        : ''
+      const sections = []
 
-  pages.addChild(page1)
-  pages.addChild(page3.translateBy(800, 0).scaleBy(0.25))
-  pages.addChild(page2.translateBy(400, 0))
+      for (const sectionInfo of pageInfo.nodes) {
+        if (sectionInfo.isElement()) {
+          const section = {
+            type: sectionInfo.name.toLowerCase()
+          }
+          for (const attr of sectionInfo.attributes()) {
+            const rawValue = attr.values[0]
+            let cleanValue
+            if (rawValue === null) {
+              cleanValue = true
+            } else if (rawValue === 'false') {
+              cleanValue = false
+            } else if (rawValue.match(/^\d+([.]\d+)?$/)) {
+              cleanValue = parseFloat(rawValue)
+            } else {
+              cleanValue = attr.values.join(' ')
+            }
+            section[attr.name.toLowerCase()] = cleanValue
+          }
+          sections.push(section)
+        } else if (
+          sectionInfo.isAttribute() &&
+          sectionInfo.values[0] === null
+        ) {
+          sections.push({
+            type: sectionInfo.name.toLowerCase()
+          })
+        }
+      }
 
-  for (let i = 0; i < 5; i++) {
-    const testRect = new ZRect({
-      fillStyle: '#ff0000',
-      radius: 10,
-      bounds: [0, 0, 100, 100]
-    }).translateBy(Math.random() * 1000, Math.random() * 1000)
-    testRect.draggable = testRect
+      const page = new Page(pageTitle, { sections })
 
-    // testRect.addListener(new DragHandler(testRect))
-    pages.addChild(testRect)
+      pages.addChild(page.translateBy(pages.children.length * 400, 0))
+    }
   }
 
+  buildFromSite()
+
   layer.addChild(pages) //.translateBy(0, 100))
-  layer.addChild(new Connector(page1, page3, pages.children))
+  // layer.addChild(new Connector(page1, page3, pages.children))
 }
 
 main()

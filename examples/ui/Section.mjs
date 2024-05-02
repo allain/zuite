@@ -21,7 +21,7 @@ export class Section extends ZNode {
     this.addChild(bgNode)
 
     const { title } = data
-    if (title) {
+    if (title && type !== 'button') {
       const titleNode = new ZText(title, {
         fillStyle: SECTION_TITLE_TEXT
       }).scaleBy(1.25)
@@ -49,7 +49,7 @@ export class Section extends ZNode {
     } else if (type === 'button') {
       bgNode.fillStyle = SECTION_TEXT
       this.addChild(
-        new ZText(data.label, { fillStyle: data.color }).translateBy(
+        new ZText(data.title, { fillStyle: data.color }).translateBy(
           (this.bounds.width - ZText.measureText(data.label)) / 2,
           PADDING
         )
@@ -185,7 +185,9 @@ export class Section extends ZNode {
   }
 
   injectMasonrySection(data) {
-    const { height, cols } = data
+    let { height, cols } = data
+
+    height = height * ZText.fontSize
 
     const colW = (this.bounds.width - (data.cols + 1) * PADDING) / data.cols
 
@@ -279,21 +281,25 @@ export class Section extends ZNode {
   }
 
   injectPictureSection() {
-    this.addChild(
-      new ZImage(
-        'https://widgets.clickncode.com/_uplandjs/icons/bootstrap/card-image.svg',
-        {
-          loaded: (node) => {
-            const ratio = (this.bounds.width - PADDING * 2) / node.bounds.width
-            node.scaleBy(ratio)
-            this.bgNode.bounds.height += ratio * node.bounds.height
-            this.bounds.height += ratio * node.bounds.height
-            this.parent.bounds.height += ratio * node.bounds.height
-            this.parent.parent.bounds.height += ratio * node.bounds.height
-          }
-        }
-      ).translateBy(PADDING, this.fullBounds.height)
-      // .scaleBy(0.15)
-    )
+    const width = this.fullBounds.width
+
+    const child = new ZImage(
+      'https://widgets.clickncode.com/_uplandjs/icons/bootstrap/card-image.svg',
+      {
+        loaded: (node) => {
+          const ratio = (this.bounds.width - PADDING * 2) / node.bounds.width
+          node.scaleBy(ratio)
+          this.bgNode.bounds.height += ratio * node.bounds.height
+          this.bounds.height += ratio * node.bounds.height
+          console.log(this.bounds.height)
+          this.parent.bounds.height += ratio * node.bounds.height
+          this.parent.parent.bounds.height += ratio * node.bounds.height
+        },
+        bounds: [0, 0, width - PADDING * 4, 100]
+      }
+    ).translateBy(PADDING, this.fullBounds.height)
+    // .scaleBy(0.15)
+
+    this.addChild(child)
   }
 }

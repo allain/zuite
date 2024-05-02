@@ -1,0 +1,9 @@
+Site
+	Page
+		Title Welcome Page
+		Text
+			Title Welcome
+			Lines 3
+		End
+	End
+End

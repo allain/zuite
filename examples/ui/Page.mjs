@@ -1,6 +1,6 @@
 import { ZNode } from '../js/ZNode.mjs'
 import { ZText } from '../js/nodes/ZText.mjs'
-import { DragHandler } from './DragHandler.mjs'
+// import { DragHandler } from './DragHandler.mjs'
 import { Section } from './Section.mjs'
 import {
   PADDING,
@@ -17,8 +17,6 @@ export class Page extends ZNode {
       bounds: [0, 0, 320, 0],
       fillStyle: PAGE_BODY_BG
     })
-
-    const page = this
 
     const headerNode = new ZNode({
       focusable: false,
