@@ -1,8 +1,6 @@
 import { ZCanvas } from '../js/ZCanvas.mjs'
 import { ZNode } from '../js/ZNode.mjs'
-import { ZText } from '../js/nodes/ZText.mjs'
 import { Page } from './Page.mjs'
-import { ZRect } from '../js/nodes/ZRect.mjs'
 import { ZPoint } from '../js/utils/ZPoint.mjs'
 import { ZTransform } from '../js/utils/ZTransform.mjs'
 import * as easings from '../js/easings.mjs'
@@ -19,7 +17,7 @@ import {
 } from 'https://cdn.jsdelivr.net/npm/@mathigon/euclid@1.1.17/+esm'
 
 class Connector extends ZNode {
-  constructor(from, to, dodge = [], margin = 10) {
+  constructor(from, to, dodge = [], margin = 0) {
     super()
     this.from = from
     this.to = to
@@ -29,19 +27,17 @@ class Connector extends ZNode {
 
   paint(ctx) {
     const margin = this.margin
-    const fromPos = new Point(this.from.offset.x, this.from.offset.y)
-    const fromRect = new Rectangle(
-      fromPos,
-      this.from.fullBounds.width,
-      this.from.fullBounds.height
-    )
+    const fromBounds = this.from.globalFullBounds
+    const fromPos = new Point(fromBounds.x, fromBounds.y)
+    const fromRect = new Rectangle(fromPos, fromBounds.width, fromBounds.height)
     const fromCenter = fromRect.center
-    const toPos = new Point(this.to.offset.x, this.to.offset.y)
+    const toBounds = this.to.globalFullBounds
+    const toPos = new Point(toBounds.x, toBounds.y)
     const toScale = this.to.globalTransform.scale
     const toRect = new Rectangle(
       toPos,
-      this.to.fullBounds.width * toScale,
-      this.to.fullBounds.height * toScale
+      toBounds.width * toScale,
+      toBounds.height * toScale
     )
     const toCenter = toRect.center
 
@@ -58,13 +54,14 @@ class Connector extends ZNode {
 
     const dodgeRects = this.dodge
       .map((d) => {
-        const pos = new Point(d.offset.x, d.offset.y)
+        const dBounds = d.globalFullBounds
+        const pos = new Point(dBounds.x, dBounds.y)
         pos.x -= margin
         pos.y -= margin
         const rect = new Rectangle(
           pos,
-          d.fullBounds.width + margin * 2,
-          d.fullBounds.height + margin * 2
+          dBounds.width + margin * 2,
+          dBounds.height + margin * 2
         )
         return rect
       })
@@ -109,16 +106,16 @@ class Connector extends ZNode {
     ctx.strokeStyle = '#00A3F5'
     ctx.lineWidth = 5
 
-    drawSmoothLine(ctx, path)
-    // ctx.beginPath()
-    // path.forEach((p, index) => {
-    //   if (index === 0) {
-    //     ctx.moveTo(p.x, p.y)
-    //   } else {
-    //     ctx.lineTo(p.x, p.y)
-    //   }
-    // })
-    // ctx.stroke()
+    // drawSmoothLine(ctx, path)
+    ctx.beginPath()
+    path.forEach((p, index) => {
+      if (index === 0) {
+        ctx.moveTo(p.x, p.y)
+      } else {
+        ctx.lineTo(p.x, p.y)
+      }
+    })
+    ctx.stroke()
   }
 }
 
@@ -300,6 +297,7 @@ async function main() {
         this._dragging.viewTransform = new ZTransform([
           ...this._startViewTransform
         ]).translateBy(dx, dy)
+        this._dragging._globalFullBounds = null
       } else {
         const dx = (event.point.x - this._dragStart.x) / scale
         const dy = (event.point.y - this._dragStart.y) / scale
@@ -308,17 +306,11 @@ async function main() {
           x: this._startOffset.x + dx,
           y: this._startOffset.y + dy
         }
+        this._dragging._globalFullBounds = null
         this._dragging.invalidatePaint()
       }
+      updateConnectors()
     }
-    // wheel({ event, pickedNodes }) {
-    //   const ratio = 0.95
-    //   if (event.deltaY < 0) {
-    //     canvas.camera.scaleBy(ratio)
-    //   } else {
-    //     canvas.camera.scaleBy(ratio)
-    //   }
-    // }
   })
 
   canvas.fillStyle = '#aaaaaa'
@@ -336,16 +328,78 @@ async function main() {
   // layer.addListener(navigator)
 
   const pages = new ZNode()
+  const connectors = new ZNode()
 
   const params = new URLSearchParams(document.location.search)
   const uiName = params.get('ui') ?? 'starter'
-  const spec = await fetch('/ui/uis/' + uiName + '.ui').then((res) =>
-    res.text()
-  )
+  let spec = localStorage.getItem('spec-' + uiName)
+  spec ??= await fetch('/ui/uis/' + uiName + '.ui').then((res) => res.text())
   siteEl.value = spec
 
   siteEl.addEventListener('input', () => {
     buildFromSite()
+  })
+
+  siteEl.addEventListener('keydown', function (event) {
+    switch (event.key) {
+      case 'Enter': {
+        const start = this.selectionStart
+        const end = this.selectionEnd
+
+        let padding = ''
+        const value = event.target.value
+        for (let i = start - 1; i > 0; i--) {
+          if (value[i] === '\n') {
+            padding = value.substring(i + 1)
+            console.log(padding)
+            padding = padding.match(/^(\s*)/)[1]
+            break
+          }
+        }
+        event.target.value =
+          value.substring(0, start) + '\n' + padding + value.substring(end)
+
+        // put caret at right position again (add one for the tab)
+        this.selectionStart = this.selectionEnd = start + padding.length + 1
+        event.preventDefault()
+        break
+      }
+      case 'Tab': {
+        const start = this.selectionStart
+        const end = this.selectionEnd
+
+        const value = event.target.value
+
+        // set textarea value to: text before caret + tab + text after caret
+        if (event.shiftKey) {
+          let padding = ''
+          const value = event.target.value
+          let i
+          for (i = start - 1; i > 0; i--) {
+            if (value[i] === '\n') {
+              padding = value.substring(i + 1)
+              padding = padding.match(/^(\s*)/)[1]
+              break
+            }
+          }
+          event.target.value =
+            value.substring(0, i + 1) +
+            padding.substring(2) +
+            value.substring(i + padding.length)
+          this.selectionStart = this.selectionEnd = start - 1
+        } else {
+          event.target.value =
+            value.substring(0, start) + '\t' + value.substring(end)
+
+          // put caret at right position again (add one for the tab)
+          this.selectionStart = this.selectionEnd = start + 1
+        }
+
+        // prevent the focus lose
+        event.preventDefault()
+        break
+      }
+    }
   })
 
   siteEl.addEventListener('change', () => {
@@ -355,14 +409,16 @@ async function main() {
       const newSiteDoc = siteDoc.toString(false)
       if (newSiteDoc !== siteDoc) {
         siteEl.value = newSiteDoc
-        // return
       }
+      localStorage.setItem('spec-' + uiName, newSiteDoc)
     } catch (err) {
       console.error(err)
     }
   })
 
   function buildFromSite() {
+    globalThis.targets = new Map()
+    globalThis.links = []
     let siteDoc
     try {
       siteDoc = SmlDocument.parse(siteEl.value)
@@ -415,9 +471,23 @@ async function main() {
     }
   }
 
+  function updateConnectors() {
+    // for (const child of connectors.children) {
+    //   connectors.removeChild(child)
+    // }
+    // for (const [fromNode, targetName] of globalThis.links) {
+    //   const targetNode = globalThis.targets.get(targetName)
+    //   if (fromNode && targetNode) {
+    //     layer.addChild(new Connector(fromNode, targetNode, pages.children))
+    //   }
+    // }
+  }
   buildFromSite()
+  updateConnectors()
 
   layer.addChild(pages) //.translateBy(0, 100))
+  layer.addChild(connectors)
+  connectors.moveToFront()
   // layer.addChild(new Connector(page1, page3, pages.children))
 }
 

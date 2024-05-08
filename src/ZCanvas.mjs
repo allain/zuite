@@ -14,6 +14,10 @@ export class ZCanvas {
     this.root = root
     const camera = (this.camera = new ZCamera())
     this.camera.bounds = new ZBounds(0, 0, canvas.width, canvas.height)
+    canvas.addEventListener('resize', () => {
+      this.camera.bounds = new ZBounds(0, 0, canvas.width, canvas.height)
+      this.paint()
+    })
 
     const layer = new ZLayer()
     this.root.addChild(layer)

@@ -12,6 +12,28 @@ import {
   SECTION_TITLE_TEXT
 } from './constants.mjs'
 
+async function objToFloat(obj) {
+  const inputString = JSON.stringify(obj)
+  // Convert the string to an ArrayBuffer
+  const encoder = new TextEncoder()
+  const data = encoder.encode(inputString)
+
+  // Hash the data with SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+
+  // Convert bytes array to a hexadecimal string
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+  const hashInt = BigInt('0x' + hashHex)
+
+  // Normalize to a value between 0 and 1
+  // SHA-256 produces a 256-bit hash. The maximum value is 2^256 - 1.
+  const maxValBigInt = BigInt(2) ** BigInt(256) - BigInt(1)
+  const normalizedFloat = Number(hashInt) / Number(maxValBigInt)
+
+  return normalizedFloat
+}
+
 export class Section extends ZNode {
   constructor({ type, ...data }) {
     super({ bounds: [0, 0, 320 - 2 * PAGE_PADDING, 0] })
@@ -24,7 +46,7 @@ export class Section extends ZNode {
     if (title && type !== 'button') {
       const titleNode = new ZText(title, {
         fillStyle: SECTION_TITLE_TEXT
-      }).scaleBy(1.25)
+      }).scaleBy(1.1)
       this.addChild(titleNode.translateBy(PADDING, PADDING))
     }
 
@@ -113,7 +135,7 @@ export class Section extends ZNode {
           bounds: [
             0,
             0,
-            parentWidth * (0.15 + Math.random() * 0.1),
+            parentWidth * (0.15 + objToFloat(data) * 0.1),
             ZText.fontSize
           ]
         }).translateBy(PADDING, currentY)
@@ -126,7 +148,7 @@ export class Section extends ZNode {
           bounds: [
             parentWidth * 0.25 + PADDING,
             0,
-            parentWidth * (0.25 + 0.25 * Math.random()),
+            parentWidth * (0.25 + 0.25 * objToFloat(data)),
             ZText.fontSize
           ]
         }).translateBy(PADDING, currentY)
@@ -155,7 +177,8 @@ export class Section extends ZNode {
           bounds: [
             bullets ? PADDING + ZText.fontSize : 0,
             0,
-            this.fullBounds.width * (0.5 + Math.random() * 0.4) - PADDING * 2,
+            this.fullBounds.width * (0.5 + objToFloat(data) * 0.4) -
+              PADDING * 2,
             ZText.fontSize
           ]
         }).translateBy(PADDING, currentY)
@@ -197,7 +220,7 @@ export class Section extends ZNode {
       while (cellY < height + startY) {
         const cellHeight = Math.min(
           height - cellY,
-          ZText.fontSize + Math.random() * ZText.fontSize * 2
+          ZText.fontSize + objToFloat(data) * ZText.fontSize * 2
         )
         if (cellHeight < ZText.fontSize) {
           break
@@ -226,21 +249,21 @@ export class Section extends ZNode {
           bounds: [
             0,
             0,
-            innerWidth * (0.3 + Math.random() * 0.6),
+            innerWidth * (0.3 + objToFloat(data) * 0.6),
             ZText.fontSize
           ],
           fillStyle: SECTION_TEXT
         }).translateBy(PADDING, this.fullBounds.height + PADDING)
       )
 
-      for (let l = 0; l < Math.round(2 + Math.random() * 5); l++) {
+      for (let l = 0; l < Math.round(2 + objToFloat(data) * 5); l++) {
         this.addChild(
           new ZRect({
             radius: ROUNDING,
             bounds: [
               0,
               0,
-              innerWidth * (0.8 + Math.random() * 0.2),
+              innerWidth * (0.8 + objToFloat(data) * 0.2),
               ZText.fontSize
             ],
             fillStyle: '#DDEAF3'

@@ -18,6 +18,8 @@ export class Page extends ZNode {
       fillStyle: PAGE_BODY_BG
     })
 
+    globalThis.targets.set(title, this)
+
     const headerNode = new ZNode({
       focusable: false,
       bounds: [0, 0, 320, ZText.fontSize + PADDING * 2],
@@ -49,6 +51,12 @@ export class Page extends ZNode {
 
     for (const section of sections) {
       const sectionNode = new Section(section)
+      if (section.name) {
+        globalThis.targets.set(section.name, sectionNode)
+      }
+      if (section.link) {
+        globalThis.links.push([sectionNode, section.link])
+      }
       let sectionYPosition = pageContent.fullBounds.height
       if (sectionYPosition) {
         sectionYPosition += PAGE_PADDING
